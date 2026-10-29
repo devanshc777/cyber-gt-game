@@ -170,22 +170,38 @@ The defender CPU starts with the Normal budget (24) in attacker mode.
 
 ## 8. CPU Opponent Models
 A CPU sees exactly what a human in its seat sees (section 9).
+Code: `src/engine/cpu.ts`. Measured strength: `npx vite-node tools/eval-cpus.ts`.
+
 1. **Random:** uniform over available actions.
-2. **Greedy best-response:** tracks the opponent's observed action frequency so far and picks the action with the
-   best expected payoff against that empirical mix. Exploitable if the player varies their play.
-   **Easy** = 50% Random, 50% Greedy.
+2. **Greedy best-response:** plays the best response to what it has observed of the opponent so far.
+   - The defender counts the attacks it saw (IDS rounds only).
+   - The attacker never sees a defense. It counts every defense consistent with what it did see: blocked or landed,
+     and any hunt result.
+   - Exploitable if the player varies their play.
+   - **Easy** = 50% Random, 50% Greedy.
 3. **Nash mixed (hard):** each round, build the current phase's matrix and solve the zero-sum LP, then sample.
-   - Remove defender columns the budget cannot afford.
-   - Both sides score the same value per cell, so each stage game stays zero-sum:
-     `value = gain - w x (actual risk change) + kappa x (defender's cost)`, with kappa = 3. Budget the defender
-     burns counts toward the attacker. Without this term the LP assumes hunting is free, and the attacker hides forever.
-   - gain: C added, or for a breach attempt, breach chance x the value of being Inside (25). A hunt hit costs the
-     attacker that same 25.
-   - w = 0.05 + 1.5 x (R / threshold)^2, so risk barely matters early and dominates near the threshold.
-   - The defender CPU does not know the phase. It assumes Inside once it has evidence (IDS, a hunt hit, C rising
-     from exfiltration), and Outside after an eviction.
-   - Known weakness: a one-round LP cannot see the clock, so it hides too much late in the game. M2 adds time
-     awareness; the trained tier (section 12) is the full answer.
+   - **Shared cell value, a one-step lookahead.** Both sides score each (attack, defense) cell by the same number,
+     so each stage game stays zero-sum:
+     `value = win chance of the next state + 0.5 x progress - w x (actual risk change) + kappa x scarcity x (defender's cost)`.
+   - **Win chance** is a rough estimate of whether the attacker can still reach C 100 in the rounds left, assuming
+     5 C per round once Inside and 3 rounds to breach. It makes the CPU clock-aware: hiding is cheap early and fatal late.
+   - **Progress** (C gained, plus 15 for a foothold) keeps a pull toward damage when the game looks lost. Without it
+     the CPU gives up even against a defender that has run out of budget.
+   - **Risk weight:** w = (0.05 + 1.5 x (R / threshold)^2) x clock, where clock = min(1, rounds left / 5). Risk
+     matters most near the threshold and least near the end, since a timeout loses as surely as being caught.
+   - **Budget term:** kappa = 3, scaled by scarcity = clamp(2 x rounds left / (B + 1), 0.25, 1.5). Without it the LP
+     assumes hunting is free, and the attacker hides forever.
+   - **Columns:** the defender removes columns it cannot afford. The attacker removes columns costing more than the
+     most the defender can have left (start budget minus 2 per hunt it has felt).
+   - **The defender does not know the phase.** It keeps a belief b that the attacker is Inside: the belief creeps up
+     each unobserved round, jumps on evidence (IDS, a hunt hit, exfiltration-sized C jumps) and resets after an eviction.
+     It then solves the Bayesian stage game as one matrix: each row is a pair (Outside action, Inside action) worth
+     (1 - b) x Outside + b x Inside.
+   - **Safe exploitation:** with a probability that grows with evidence (to at most 90%), the CPU plays its best
+     response to the opponent's observed play instead of sampling the mix, but only when that response beats the mix
+     against the same observed play. Pure maximin is too cautious to punish a predictable opponent.
+   - Estimates the CPU cannot observe: the defender assumes R = threshold / 2, K = 1 and no backdoor; the attacker
+     assumes the defender spends about 1.2 per round.
 
 **Why keep the base zero-sum:** budget and risk only change which actions are available or their weights. That
 keeps each per-state solve a standard LP, defensible as "a sequence of zero-sum stage games under resource

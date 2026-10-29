@@ -25,8 +25,8 @@ Course project (CSE3145 Game Theory) and an extensible attack/defense game. Owne
 2. `uv run --with numpy --with scipy python -I tools/stage_check.py` vs the TS solver on the same matrices: must agree
    to 1e-6 (pinned in `src/engine/lp.test.ts`). Disagreement means the TS LP is wrong (the oracle is scipy).
 3. `npm run sim -- --seed N` twice: identical JSON. If not, something bypasses the seeded RNG.
-4. A rules change re-runs `npx vite-node tools/probe2.ts`: any fixed policy winning over 80% against the Nash CPU
-   means a dominant plan came back.
+4. A rules or CPU change re-runs `npx vite-node tools/eval-cpus.ts 1000`: any fixed plan winning over 80% against
+   a Nash CPU (either role) means a dominant plan came back, or the CPU lost the ability to punish one.
 5. Before trusting a new sim metric, feed it a batch whose answer you know (Random vs Random action frequencies
    should be uniform over available actions).
 
@@ -44,3 +44,9 @@ Course project (CSE3145 Game Theory) and an extensible attack/defense game. Owne
   low 100%; tuning flips dominance to a one-line cautious attacker). He picked Option C: spec v2 "kill chain"
   (outside/inside, silent breach, Threat Hunt evicts). M1 built on v2: two-phase engine, LP solver (= scipy to 1e-6),
   35 tests incl. a hand-traced 20-round game. Next: M2 CPUs (clock-blind LP attacker is the known gap).
+- 2026-10-30: M2 done. `src/engine/cpu.ts`: Random, Easy, Greedy, Nash, each fed only its s9 view. Nash = per-state
+  LP on a shared one-step-lookahead value (win chance + progress pull, clock-scaled risk, budget scarcity), Bayesian
+  belief matrix for the defender, safe exploitation for both. Failures found and fixed on the way: hide-forever
+  (free hunts), procrastination (optimistic win estimate), despair (flat win curve). N=1000: no fixed plan beats Nash
+  defender over 17%; none holds Nash attacker under 65%. Nash vs Nash = 22% attacker, 18.6 rounds: off the 45-55%
+  target, which is M4's job (sim runner M3 first). 61 tests.
