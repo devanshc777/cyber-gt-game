@@ -1,5 +1,26 @@
 # Spec review: what GAME-SPEC.md says vs what it does
 
+> Sections 1-2 below review **v1** (his original brief). v1 was replaced by v2 "kill chain" on 2026-10-30; see
+> `RUBRIC-REVIEW.md` for why and section 0 for the v2 stage games.
+
+## 0. v2 stage games, solved (measured)
+
+`uv run --with numpy --with scipy python -I tools/stage_check.py`:
+
+| Matrix | Pure NE | Value (attacker) | Attacker mix | Defender mix |
+|---|---|---|---|---|
+| Outside, raw | none | 1.625 | SQLi 26.25, DoS 37.5, Phish 36.25 | IDS 75, WAF 12.5, Training 12.5 |
+| Outside + 3 x cost | none | 6.74 | Brute 8, SQLi 41, Phish 51 | WAF 26, Training 14, Idle 60 |
+| Inside, raw | **(Lay Low, Hunt)** | 0 | Lay Low 100 | Hunt 100 |
+| Inside + 3 x cost | none | 4.5 | Sniff 50, Exfil 50 | Firewall 75, Hunt 25 |
+
+- The raw Inside game is the textbook inspection-game corner: if hunting is free, the defender always hunts and the
+  intruder always hides. Pricing the hunt (kappa x cost, spec s8) restores a mixed equilibrium. A clean report point.
+- Pricing the budget makes IDS dominated Outside (Firewall does its recon job for half the price). IDS still earns
+  its place through information (s9), which a one-shot matrix cannot show. The sims have to.
+- The Outside numbers equal v1's, as expected: the rows are his, only Sniffing moved Inside.
+
+
 Read of `GAME-SPEC.md` before any engine code, 2026-10-30. Each item is marked
 **measured** (a command produced it), **inference** (reasoned, not run) or **ambiguity** (the spec allows two readings).
 Items needing Devansh's ruling are tagged `[DECIDE]`. Resolved ones move to `SPEC-CHANGES.md`.

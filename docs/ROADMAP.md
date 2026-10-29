@@ -6,8 +6,8 @@ Order matters: engine and numbers before art, so balance fixes never force redra
 | M | Chunk | Done means | Verify with |
 |---|---|---|---|
 | **M0** | Scaffold + docs (this commit) | PRD, spec, spec review, roadmap, art direction, CLAUDE.md, remote repo | `git log`, remote exists |
-| **M1** | Engine core | Vite+TS project; `src/engine/` with arena data file (website), state, `resolveRound()` per spec s5; seeded RNG | one test per resolution step (9 steps) + a full scripted 20-round game |
-| **M2** | Solvers + CPUs | zero-sum LP; Random, Greedy, Nash CPUs per s8 with per-state matrices | TS LP equals `tools/stage_check.py` to 1e-6 on the base matrix |
+| **M1** | Engine core (spec v2) | Vite+TS project; `src/engine/` with arena data file (website), two-phase state, `resolveRound()` per spec s5; seeded RNG; LP solver | one test per resolution step (9 steps) + scripted 20-round game; LP equals scipy to 1e-6 |
+| **M2** | CPUs | Random, Easy, Greedy, Nash CPUs per s8 (shared zero-sum value, defender belief about the phase); fix clock-blindness | no fixed policy wins >80% vs Nash CPU (`tools/probe2.ts` policies) |
 | **M3** | Simulation runner | `npm run sim` runs s10 batches (10k games each), writes `data/sim-*.json` with seed | rerun same seed = identical JSON; numbers sane vs SPEC-REVIEW predictions |
 | **M4** | Balance pass | tune knobs in s10.4 order until Normal hits targets, or document why not | before/after table in `SPEC-CHANGES.md`; **his sign-off on every rule change** |
 | **M5** | Playable greybox | menu, battleground select, role, difficulty, match screen, end screen; flat shapes, no art | play 3 full matches per role; HUD hides what s9 hides |
@@ -20,8 +20,9 @@ Report writing is his (or ARS skills if he asks); the game supplies figures and 
 ## Open decisions for Devansh
 
 Engine-blocking (needed before M1/M2):
-1. Spec ambiguities A2, A3, A8 in `SPEC-REVIEW.md` (Easy CPU, CPU information set, simultaneous win+caught).
-2. Stack: Vite + vanilla TS as proposed, or does he want React/Svelte for the screens?
+1. ~~Spec ambiguities A2, A3, A8~~ ruled 2026-10-30 (`SPEC-CHANGES.md`).
+2. ~~Stack~~ Vite + vanilla TS, approved 2026-10-30.
+2b. ~~Rubric~~ v2 "kill chain" adopted 2026-10-30 (`RUBRIC-REVIEW.md`).
 
 Art-blocking (needed before M7, can wait):
 3. Art direction, see `ART-DIRECTION.md`: pick or mix the directions.

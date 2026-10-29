@@ -1,7 +1,7 @@
 # PRD: Cyber Attack/Defense game (working title)
 
 > Working title until Devansh names it. Course project for **CSE3145 Game Theory** (MUJ, Jul-Nov 2026),
-> worth 10 marks of CWS. Rules live in `docs/GAME-SPEC.md` (his spec, verbatim). This file is the product around them.
+> worth 10 marks of CWS. Rules live in `docs/GAME-SPEC.md` (v2 "kill chain", adopted 2026-10-30; his original brief verbatim in `docs/GAME-SPEC-v1.md`). This file is the product around them.
 
 ## 1. What it is
 A browser game where you play Attacker or Defender against a CPU over 20 rounds of simultaneous, hidden moves,
