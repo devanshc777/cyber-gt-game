@@ -123,8 +123,9 @@ describe('step 5: action effects', () => {
     expect(state.phase).toBe('inside');
   });
 
-  it('a hunt outside reports nothing', () => {
-    expect(play(at(), 'A7', 'D7').result.hunt).toBeNull();
+  it('a hunt outside reads "nothing found", the same as missing a dormant intruder', () => {
+    expect(play(at(), 'A7', 'D7').result.hunt).toBe('nothing-found');
+    expect(play(at(), 'A1', 'D8').result.hunt).toBeNull();
   });
 
   it('clamps C at 100', () => {

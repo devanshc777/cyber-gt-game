@@ -3,37 +3,16 @@
 // Run: npx vite-node tools/eval-cpus.ts [N]
 import { website as arena } from '../src/engine/arenas/website';
 import { makeRng } from '../src/engine/rng';
-import { insideBelief, makeAttackerCpu, makeDefenderCpu, type AttackerCpu, type CpuKind, type DefenderCpu } from '../src/engine/cpu';
+import { makeAttackerCpu, makeDefenderCpu, type AttackerCpu, type CpuKind, type DefenderCpu } from '../src/engine/cpu';
+import { fixedAttackers as fixedAttackersFor, fixedDefenders as fixedDefendersFor } from './plans';
 import { playMatch } from '../src/engine/match';
 
 const N = Number(process.argv[2] ?? 1000);
 const st = arena.settings.attacker.normal;
-const kinds: CpuKind[] = ['random', 'easy', 'greedy', 'nash'];
+const kinds: CpuKind[] = ['random', 'easy', 'greedy', 'nash', 'trained'];
 
-const fixedAttackers: Record<string, AttackerCpu> = {
-  'phish>exfil': (v) => (v.phase === 'inside' ? 'A8' : 'A6'),
-  'sqli>exfil': (v) => (v.phase === 'inside' ? 'A8' : 'A4'),
-  'cautious phish': (v) => (v.risk >= st.threshold - 15 ? 'A7' : v.phase === 'inside' ? 'A8' : 'A6'),
-  'cautious sqli': (v) => (v.risk >= st.threshold - 15 ? 'A7' : v.phase === 'inside' ? 'A8' : 'A4'),
-  'backdoor first': (v) => (v.risk >= st.threshold - 15 ? 'A7' : v.phase === 'outside' ? 'A6' : v.backdoor ? 'A8' : 'A9'),
-  'scan x3 then sqli': (v) => (v.phase === 'inside' ? 'A8' : v.knowledge < 3 ? 'A1' : 'A4'),
-  'dos only': () => 'A5',
-  // Breach, hide on the first round inside and after any hunt; exfiltrate once the hunts stop.
-  'hide from hunts': (v) => {
-    const last = v.history.at(-1);
-    if (v.phase === 'outside') return 'A6';
-    return !last || last.phase === 'outside' || last.hunt ? 'A7' : 'A8';
-  },
-};
-const fixedDefenders: Record<string, DefenderCpu> = {
-  'always IDS': () => 'D1',
-  'always Hunt': () => 'D7',
-  'always Training': () => 'D6',
-  'always WAF': () => 'D2',
-  'always Idle': () => 'D8',
-  'train, hunt if inside': (v) => (insideBelief(v) > 0.5 ? 'D7' : 'D6'),
-  'cheap rotation': (v) => ['D3', 'D5', 'D8'][v.round % 3]!,
-};
+const fixedAttackers = fixedAttackersFor(st);
+const fixedDefenders = fixedDefendersFor();
 
 function match(att: AttackerCpu, def: DefenderCpu, n = N) {
   let win = 0, rounds = 0;

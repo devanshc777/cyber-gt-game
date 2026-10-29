@@ -78,6 +78,8 @@ export function resolveRound(
       breached = rng() < Math.min(payoff / arena.breach.divisor, arena.breach.cap);
       if (breached) phase = 'inside';
     }
+    // A hunt with nobody inside reads exactly like one that missed a dormant intruder (s9).
+    if (defense === arena.hunt.defender) hunt = 'nothing-found';
   } else if (defense === arena.hunt.defender) {
     if (isLayLow) {
       hunt = 'nothing-found';

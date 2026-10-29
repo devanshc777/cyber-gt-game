@@ -44,6 +44,14 @@ describe('information sets (s9)', () => {
     });
   });
 
+  it('a hunt on an empty network looks the same to the defender as missing a dormant intruder', () => {
+    const rng = makeRng(1);
+    const out = resolveRound(arena, st, newGame(st), 'A7', 'D7', rng);
+    const ins = resolveRound(arena, st, { ...newGame(st), phase: 'inside' }, 'A7', 'D7', rng);
+    expect(defenderView(out.state, [out.result]).history).toEqual(defenderView(ins.state, [ins.result]).history);
+    expect(attackerView(out.state, [out.result]).history[0]!.hunt).toBeNull();
+  });
+
   it('the attacker view never names a defense or the budget', () => {
     const v = attackerView(final, hist);
     expect(Object.keys(v)).not.toContain('budget');

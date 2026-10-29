@@ -4,8 +4,29 @@ import type { Arena, GameState, HuntResult, Phase, RoundResult, Settings } from 
 import { affordable, attackerOptions, riskMultiplier } from './engine';
 import { solveZeroSum } from './lp';
 import type { Rng } from './rng';
+import trainedPolicy from './trained-policy.json';
 
-export type CpuKind = 'random' | 'easy' | 'greedy' | 'nash';
+export type CpuKind = 'random' | 'easy' | 'greedy' | 'nash' | 'trained';
+
+/** Learned average strategies per state bucket (written by tools/train.ts). */
+export interface Policy {
+  games: number;
+  attacker: Record<string, Record<string, number>>;
+  defender: Record<string, Record<string, number>>;
+}
+
+// Coarse state buckets for the trained CPU: few enough that regret matching visits each one often.
+const band3 = (x: number, a: number, b: number) => (x < a ? 0 : x < b ? 1 : 2);
+const roundBand = (round: number, rounds: number) => band3(round, rounds / 3 + 1, (2 * rounds) / 3 + 1);
+
+export function attackerBucket(v: AttackerView, st: Settings): string {
+  return `${v.phase}|r${band3(v.risk, st.threshold / 2, st.threshold)}|t${roundBand(v.round, st.rounds)}`;
+}
+
+export function defenderBucket(v: DefenderView, st: Settings): string {
+  const left = st.rounds - v.round + 1;
+  return `b${band3(insideBelief(v), 0.3, 0.8)}|$${band3(v.budget, left, 2 * left)}|t${roundBand(v.round, st.rounds)}`;
+}
 
 export interface AttackerView {
   round: number;
@@ -35,7 +56,8 @@ export function attackerView(state: GameState, history: RoundResult[]): Attacker
   return {
     round: state.round, phase: state.phase, compromise: state.compromise, risk: state.risk,
     knowledge: state.knowledge, backdoor: state.backdoor,
-    history: history.map((r) => ({ phase: r.phaseBefore, attack: r.attack, blocked: r.blocked, hunt: r.hunt })),
+    // The attacker only feels a hunt from inside; outside, an audit is invisible to it.
+    history: history.map((r) => ({ phase: r.phaseBefore, attack: r.attack, blocked: r.blocked, hunt: r.phaseBefore === 'inside' ? r.hunt : null })),
   };
 }
 
@@ -211,7 +233,7 @@ function inferredDefenderMix(arena: Arena, v: AttackerView): number[] {
   return w.map((x) => x / total);
 }
 
-export function makeAttackerCpu(kind: CpuKind, arena: Arena, st: Settings): AttackerCpu {
+export function makeAttackerCpu(kind: CpuKind, arena: Arena, st: Settings, policy: Policy = trainedPolicy as Policy): AttackerCpu {
   const random: AttackerCpu = (v, rng) => {
     const ids = attackerOptions(arena, v.phase);
     return ids[Math.floor(rng() * ids.length)]!;
@@ -250,9 +272,16 @@ export function makeAttackerCpu(kind: CpuKind, arena: Arena, st: Settings): Atta
     }
     return sample(ids, x, rng);
   };
+  const trained: AttackerCpu = (v, rng) => {
+    const ids = attackerOptions(arena, v.phase);
+    const p = policy.attacker[attackerBucket(v, st)];
+    const w = ids.map((a) => p?.[a] ?? 0);
+    return w.some((x) => x > 0) ? sample(ids, w, rng) : nash(v, rng);
+  };
   if (kind === 'random') return random;
   if (kind === 'greedy') return greedy;
   if (kind === 'nash') return nash;
+  if (kind === 'trained') return trained;
   return (v, rng) => (rng() < 0.5 ? random(v, rng) : greedy(v, rng));
 }
 
@@ -281,7 +310,7 @@ function beliefMatrix(arena: Arena, st: Settings, e: Estimate, b: number, cols: 
   return M;
 }
 
-export function makeDefenderCpu(kind: CpuKind, arena: Arena, st: Settings): DefenderCpu {
+export function makeDefenderCpu(kind: CpuKind, arena: Arena, st: Settings, policy: Policy = trainedPolicy as Policy): DefenderCpu {
   const colsFor = (budget: number) => {
     const ok = affordable(arena, budget);
     return arena.defenders.map((_, j) => j).filter((j) => ok.includes(arena.defenders[j]!.id));
@@ -319,8 +348,15 @@ export function makeDefenderCpu(kind: CpuKind, arena: Arena, st: Settings): Defe
     }
     return sample(ids, y, rng);
   };
+  const trained: DefenderCpu = (v, rng) => {
+    const ids = affordable(arena, v.budget);
+    const p = policy.defender[defenderBucket(v, st)];
+    const w = ids.map((d) => p?.[d] ?? 0);
+    return w.some((x) => x > 0) ? sample(ids, w, rng) : nash(v, rng);
+  };
   if (kind === 'random') return random;
   if (kind === 'greedy') return greedy;
   if (kind === 'nash') return nash;
+  if (kind === 'trained') return trained;
   return (v, rng) => (rng() < 0.5 ? random(v, rng) : greedy(v, rng));
 }

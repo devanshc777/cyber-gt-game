@@ -202,6 +202,11 @@ Code: `src/engine/cpu.ts`. Measured strength: `npx vite-node tools/eval-cpus.ts`
      against the same observed play. Pure maximin is too cautious to punish a predictable opponent.
    - Estimates the CPU cannot observe: the defender assumes R = threshold / 2, K = 1 and no backdoor; the attacker
      assumes the defender spends about 1.2 per round.
+4. **Learned (menu level after Hard, Normal rules):** trained by regret matching in self-play
+   (`tools/train.ts`, 20,000 games, output `src/engine/trained-policy.json`). Each side keeps one regret table
+   per coarse state bucket (attacker: phase x risk band x stage of game; defender: phase belief x budget band x
+   stage of game), scores every move it could have made against what the opponent actually did (the shared cell
+   value above), and plays the average strategy. Falls back to the Nash CPU in any bucket it never visited.
 
 **Why keep the base zero-sum:** budget and risk only change which actions are available or their weights. That
 keeps each per-state solve a standard LP, defensible as "a sequence of zero-sum stage games under resource
@@ -212,8 +217,9 @@ constraints" in the report.
   breached, hunted).
 - Defender sees: B, round, and the current C.
 - Defender sees the attacker's actual action and phase only if it played D1 that round.
-- A hunt (D7) while the attacker is Inside reports one of three results: "evicted", "backdoor burned" or
-  "nothing found". "Nothing found" is also what a dormant (Lay Low) intruder produces: a false negative.
+- A hunt (D7) reports one of three results to the defender: "evicted", "backdoor burned" or "nothing found".
+  "Nothing found" is what both an empty network and a dormant (Lay Low) intruder produce, so a clean result proves
+  nothing: a false negative. The attacker feels a hunt only while Inside.
 - A breach is never announced. The defender learns of it from IDS, a hunt hit, or C starting to rise.
 
 ## 10. Simulation Plan (for tuning the numbers)
@@ -259,4 +265,4 @@ constraints" in the report.
 - Security Training with lasting effect (phishing penalty for the next 3 rounds).
 - Attacker "exploit kit" resource that must be bought.
 - Multiple servers or assets with different values (lateral movement between them).
-- Learning CPU (fictitious play or regret matching, trained on simulation data) as an extra difficulty tier.
+- ~~Learning CPU as an extra difficulty tier~~: built as the Learned level (s8.4), 2026-10-30.

@@ -5,7 +5,8 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { website as arena } from '../src/engine/arenas/website';
 import { attackerOptions } from '../src/engine/engine';
 import { makeRng } from '../src/engine/rng';
-import { makeAttackerCpu, makeDefenderCpu, type CpuKind } from '../src/engine/cpu';
+import { makeAttackerCpu, makeDefenderCpu, type AttackerCpu, type CpuKind, type DefenderCpu } from '../src/engine/cpu';
+import { fixedAttackers, fixedDefenders } from './plans';
 import { playMatch } from '../src/engine/match';
 import { solveZeroSum } from '../src/engine/lp';
 import type { Difficulty, Settings } from '../src/engine/types';
@@ -60,19 +61,43 @@ function batch(label: string, st: Settings, att: CpuKind, def: CpuKind, index: n
   };
 }
 
-const kinds: CpuKind[] = ['random', 'easy', 'greedy', 'nash'];
+const kinds: CpuKind[] = ['random', 'easy', 'greedy', 'nash', 'trained'];
 const cpuFor: Record<Difficulty, CpuKind> = { easy: 'easy', normal: 'greedy', hard: 'nash' };
 const normal = arena.settings.attacker.normal;
 
 let index = 0;
 const t0 = Date.now();
-// s10.2 pairings, plus the full 4x4 grid at Normal.
+// s10.2 pairings, plus the full CPU grid at Normal.
 const grid = kinds.flatMap((a) => kinds.map((d) => batch(`${a} vs ${d}`, normal, a, d, index++)));
 // Difficulty ladder: the Nash CPU stands in for a strong player against each difficulty's CPU and settings.
 const ladder = (['easy', 'normal', 'hard'] as Difficulty[]).flatMap((diff) => [
   { role: 'attacker', difficulty: diff, ...batch(`player-attacker ${diff}`, arena.settings.attacker[diff], 'nash', cpuFor[diff], index++) },
   { role: 'defender', difficulty: diff, ...batch(`player-defender ${diff}`, arena.settings.defender[diff], cpuFor[diff], 'nash', index++) },
+]).concat([
+  // The learned tier plays on Normal rules, the settings it was trained on.
+  { role: 'attacker', difficulty: 'learned' as Difficulty, ...batch('player-attacker learned', normal, 'nash', 'trained', index++) },
+  { role: 'defender', difficulty: 'learned' as Difficulty, ...batch('player-defender learned', normal, 'trained', 'nash', index++) },
 ]);
+
+// Exploitability: fixed plans against each adaptive CPU (attacker win %), a quarter of the games per cell.
+const probeCpus: CpuKind[] = ['greedy', 'nash', 'trained'];
+const probe = (att: AttackerCpu, def: DefenderCpu, i: number) => {
+  const rng = makeRng((seed * 31337 + i * 7907) >>> 0);
+  const n = Math.max(1, Math.floor(games / 4));
+  let w = 0;
+  for (let g = 0; g < n; g++) if (playMatch(arena, normal, att, def, rng).final.winner === 'attacker') w++;
+  return pct(w, n);
+};
+let p = 0;
+const exploit = {
+  cpus: probeCpus,
+  attackerPlans: Object.entries(fixedAttackers(normal)).map(([plan, f]) => ({
+    plan, vs: probeCpus.map((k) => probe(f, makeDefenderCpu(k, arena, normal), p++)),
+  })),
+  defenderPlans: Object.entries(fixedDefenders()).map(([plan, f]) => ({
+    plan, vs: probeCpus.map((k) => probe(makeAttackerCpu(k, arena, normal), f, p++)),
+  })),
+};
 
 const stage = (['outside', 'inside'] as const).map((phase) => {
   const rows = attackerOptions(arena, phase);
@@ -87,7 +112,7 @@ const stage = (['outside', 'inside'] as const).map((phase) => {
 const result = {
   seed, games, arena: arena.id,
   names: Object.fromEntries([...arena.attackers, ...arena.defenders].map((x) => [x.id, x.name])),
-  stage, grid, ladder,
+  stage, grid, ladder, exploit,
 };
 mkdirSync(out.replace(/[^/]+$/, ''), { recursive: true });
 writeFileSync(out, JSON.stringify(result, null, 1) + '\n');
