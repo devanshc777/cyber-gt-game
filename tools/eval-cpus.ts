@@ -2,13 +2,9 @@
 // Done means: no fixed plan wins over 80% against the Nash CPU, and Nash beats Random and Greedy clearly.
 // Run: npx vite-node tools/eval-cpus.ts [N]
 import { website as arena } from '../src/engine/arenas/website';
-import { newGame, resolveRound } from '../src/engine/engine';
 import { makeRng } from '../src/engine/rng';
-import {
-  attackerView, defenderView, insideBelief, makeAttackerCpu, makeDefenderCpu,
-  type AttackerCpu, type CpuKind, type DefenderCpu,
-} from '../src/engine/cpu';
-import type { RoundResult } from '../src/engine/types';
+import { insideBelief, makeAttackerCpu, makeDefenderCpu, type AttackerCpu, type CpuKind, type DefenderCpu } from '../src/engine/cpu';
+import { playMatch } from '../src/engine/match';
 
 const N = Number(process.argv[2] ?? 1000);
 const st = arena.settings.attacker.normal;
@@ -42,18 +38,9 @@ const fixedDefenders: Record<string, DefenderCpu> = {
 function match(att: AttackerCpu, def: DefenderCpu, n = N) {
   let win = 0, rounds = 0;
   for (let i = 0; i < n; i++) {
-    const rng = makeRng(i + 1);
-    let s = newGame(st);
-    const hist: RoundResult[] = [];
-    while (!s.winner) {
-      const a = att(attackerView(s, hist), rng);
-      const d = def(defenderView(s, hist), rng);
-      const out = resolveRound(arena, st, s, a, d, rng);
-      hist.push(out.result);
-      s = out.state;
-    }
-    if (s.winner === 'attacker') win++;
-    rounds += s.round - 1;
+    const { final } = playMatch(arena, st, att, def, makeRng(i + 1));
+    if (final.winner === 'attacker') win++;
+    rounds += final.round - 1;
   }
   return { win: (100 * win) / n, rounds: rounds / n };
 }

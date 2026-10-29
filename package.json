@@ -7,11 +7,14 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sim": "vite-node tools/sim.ts --",
+    "eval": "vite-node tools/eval-cpus.ts"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
+    "vite-node": "^6.0.0",
     "vitest": "^5.0.5"
   }
 }
