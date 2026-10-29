@@ -50,3 +50,10 @@ Course project (CSE3145 Game Theory) and an extensible attack/defense game. Owne
   (free hunts), procrastination (optimistic win estimate), despair (flat win curve). N=1000: no fixed plan beats Nash
   defender over 17%; none holds Nash attacker under 65%. Nash vs Nash = 22% attacker, 18.6 rounds: off the 45-55%
   target, which is M4's job (sim runner M3 first). 61 tests.
+- 2026-10-30: M3-M6 done ("build it all n keep testing"). M3 sim runner (seeded, byte-identical reruns). M4: budget
+  -4 (knob #1 only) puts Nash vs Nash at 45-53% in 18 rounds; his review pending in SPEC-CHANGES; Lay Low ~43% is a
+  CPU trait, not a rules one. M5: menu, role, 4 levels, match with topology animation filtered by info set, end
+  screen with full reveal; provisional A+B skin until he picks art. Browser play found a real s9 leak (outside hunt
+  returned no result vs "nothing found") — fixed and pinned by a test. M6: analysis page (live stage LPs with kappa
+  toggle, inspection-game sliders, CPU grid, ladder, Nash-vs-Nash, exploitability, learned policy) and the Learned
+  tier (regret matching, self-play). 62 tests. Open: art direction (M7), name/copy, his review of the M4 budget change.
