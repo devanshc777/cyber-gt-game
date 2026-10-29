@@ -1,2 +1,18 @@
-// Screens arrive in M5. Until then the page only confirms the build runs.
-document.querySelector('#app')!.textContent = 'cyber-gt-game: engine only (M1).';
+import './style.css';
+import { menu, endScreen } from './ui/screens';
+import { startMatch, type MatchSetup } from './ui/match';
+import { analysis } from './ui/analysis';
+
+const root = document.querySelector<HTMLElement>('#app')!;
+
+function toMenu() {
+  menu(root, play, toAnalysis);
+}
+function play(setup: MatchSetup) {
+  startMatch(root, setup, (end) => endScreen(root, end, () => play(setup), toMenu, toAnalysis));
+}
+function toAnalysis() {
+  analysis(root, toMenu);
+}
+
+toMenu();
