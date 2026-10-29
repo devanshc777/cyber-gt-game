@@ -65,15 +65,15 @@ export const website: Arena = {
   settings: {
     // Player defends against a CPU attacker: budget varies, risk stays Normal.
     defender: {
-      easy: { rounds: 20, budget: 30, riskScale: 1, threshold: 40 },
-      normal: { rounds: 20, budget: 24, riskScale: 1, threshold: 40 },
-      hard: { rounds: 20, budget: 18, riskScale: 1, threshold: 40 },
+      easy: { rounds: 20, budget: 26, riskScale: 1, threshold: 40 },
+      normal: { rounds: 20, budget: 20, riskScale: 1, threshold: 40 },
+      hard: { rounds: 20, budget: 14, riskScale: 1, threshold: 40 },
     },
     // Player attacks a CPU defender: risk varies, CPU budget stays Normal (s7.2).
     attacker: {
-      easy: { rounds: 20, budget: 24, riskScale: 0.75, threshold: 50 },
-      normal: { rounds: 20, budget: 24, riskScale: 1, threshold: 40 },
-      hard: { rounds: 20, budget: 24, riskScale: 1.25, threshold: 30 },
+      easy: { rounds: 20, budget: 20, riskScale: 0.75, threshold: 50 },
+      normal: { rounds: 20, budget: 20, riskScale: 1, threshold: 40 },
+      hard: { rounds: 20, budget: 20, riskScale: 1.25, threshold: 30 },
     },
   },
 };

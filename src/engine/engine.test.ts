@@ -38,8 +38,8 @@ describe('step 1: simultaneous choice', () => {
 
 describe('step 2: defender pays', () => {
   it('deducts the cost', () => {
-    expect(play(at(), 'A7', 'D3').state.budget).toBe(23);
-    expect(play(at(), 'A7', 'D1').state.budget).toBe(22);
+    expect(play(at(), 'A7', 'D3').state.budget).toBe(normal.budget - 1);
+    expect(play(at(), 'A7', 'D1').state.budget).toBe(normal.budget - 2);
   });
 
   it('forces Idle when the budget cannot cover the pick', () => {
@@ -241,7 +241,7 @@ describe('scripted games', () => {
     expect(hunts.filter(Boolean)).toEqual(['nothing-found', 'backdoor-burned', 'evicted']);
     expect(s).toEqual({
       round: 21, phase: 'outside', compromise: 70, risk: 11.5, knowledge: 1, backdoor: false,
-      budget: 12, winner: 'defender', reason: 'timeout',
+      budget: normal.budget - 12, winner: 'defender', reason: 'timeout',
     });
   });
 

@@ -152,9 +152,9 @@ Multipliers do not apply to Lay Low (its -10 always happens).
 ### 7.1 Defender role (player is the defender)
 | Difficulty | Starting budget | Regen/round | CPU attacker |
 |---|---|---|---|
-| Easy | 30 | +0 | Random / greedy |
-| Normal | 24 | +0 | Greedy best-response |
-| Hard | 18 | +0 | Nash mixed strategy |
+| Easy | 26 | +0 | Random / greedy |
+| Normal | 20 | +0 | Greedy best-response |
+| Hard | 14 | +0 | Nash mixed strategy |
 
 Budget is one-time by default: the defender must ration across 20 rounds. Risk uses the Normal settings
 (x1.0, threshold 40). Optional variant: +1 regen every 3 rounds (off by default).
@@ -166,7 +166,7 @@ Budget is one-time by default: the defender must ration across 20 rounds. Risk u
 | Normal | x1.0 | 40 | Greedy best-response |
 | Hard | x1.25 | 30 | Nash mixed strategy |
 
-The defender CPU starts with the Normal budget (24) in attacker mode.
+The defender CPU starts with the Normal budget (20) in attacker mode.
 
 ## 8. CPU Opponent Models
 A CPU sees exactly what a human in its seat sees (section 9).
