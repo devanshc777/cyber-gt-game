@@ -12,7 +12,7 @@ Order matters: engine and numbers before art, so balance fixes never force redra
 | **M4** done, his review pending | Balance pass | tune knobs in s10.4 order until Normal hits targets, or document why not | before/after table in `SPEC-CHANGES.md`; **his sign-off on every rule change** |
 | **M5** done (provisional skin) | Playable greybox | menu, battleground select, role, difficulty, match screen, end screen; flat shapes, no art | play 3 full matches per role; HUD hides what s9 hides |
 | **M6** done | Analysis page + trained CPU | heatmap, mixes, sim charts, exploitability; regret-matching CPU tier trained on sim data | charts read from `data/*.json`, not hardcoded |
-| **M7** | Art pass | his chosen direction; GPT-generated PNGs per `ART-DIRECTION.md` spec sheets; link animations | each asset checked in-game at real size, both screens |
+| **M7** | Art pass | his chosen direction; GPT-generated PNGs per `ART-SPECS.md` sheets (A+B mix picked 2026-10-30); link animations | each asset checked in-game at real size, both screens |
 | **M8** | Polish + report support | copy pass, export figures for the report, deploy | a classmate plays it cold |
 
 Report writing is his (or ARS skills if he asks); the game supplies figures and numbers from M3/M6.

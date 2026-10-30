@@ -1,4 +1,4 @@
-# Art direction: materials and options (nothing locked)
+# Art direction: materials and options (picked: A+B mix, his words 2026-10-30; sheets in ART-SPECS.md)
 
 > Per his design universe (`C:\Personal\Aethion\design\CLAUDE.md`): take the *thinking*, not one board's look; list
 > this task's forces; leave the picks and the words to him. Reads below are **my read (hypothesis)** unless marked
