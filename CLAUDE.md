@@ -62,3 +62,9 @@ Course project (CSE3145 Game Theory) and an extensible attack/defense game. Owne
   16 PNGs to `report/figures/` via a dev-only Vite middleware (`vite.config.ts`), captions in `report/FIGURES.md`;
   `npm run numbers` writes `report/NUMBERS.md` from sim.json. Still open: a classmate's cold playtest (roadmap "done
   means"), game name/copy, his OK on the M4 budget change.
+- 2026-10-30: Onboarding redesign from his playtest notes (df09440). Full-screen title (any key), one-column setup,
+  role briefing slides (goal, meters, how in, how you lose, tips), first-match spotlight tour (? HOW TO PLAY re-runs
+  it), tap-? help on every meter, "Blocked by / Blocks" on move cards read from the payoff matrix, a TIP after each
+  round, end screen names the deciding round and one thing to try. Attacker plays on a dark board that reddens with
+  the attack (--heat), defender on paper. UI s9 leak fixed: outside attackers were told about hunts, and an outside
+  hunt drew a landed attack as blocked. Copy drafted in `src/ui/copy.ts` (his to edit). Rules untouched (his call).
