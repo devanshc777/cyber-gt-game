@@ -15,6 +15,14 @@ const BOOT = [
 ];
 
 type Level = Difficulty | 'learned';
+
+/** Battlegrounds still to build: shown locked so the menu reads as a game with more to come. */
+const SOON = [
+  { name: 'BANK SERVER', icons: ['db', 'fw'], blurb: 'Accounts and transfers, watched by a fraud team.' },
+  { name: 'HOSPITAL NETWORK', icons: ['staff', 'db'], blurb: 'Patient records on machines that can never go offline.' },
+  { name: 'POWER GRID', icons: ['net', 'fw'], blurb: 'Old control systems that were never meant to be online.' },
+  { name: 'CLOUD STARTUP', icons: ['web', 'net'], blurb: 'Everything rented, and the keys left in a config file.' },
+];
 const LEVELS: Level[] = ['easy', 'normal', 'hard', 'learned'];
 export const LEVEL_SETUP: Record<Level, { settings: Difficulty; cpu: CpuKind }> = {
   easy: { settings: 'easy', cpu: 'easy' },
@@ -70,14 +78,16 @@ export function title(root: HTMLElement, next: () => void) {
 }
 
 /** Battleground, role and difficulty, revealed one step at a time, then start. */
-export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnalysis: () => void) {
+export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnalysis: () => void, onBack: () => void) {
   const pick: { arena?: string; role?: Role; difficulty?: Level } = {};
   root.innerHTML = `
     <div class="setup">
+      <button class="link back" id="back">&lsaquo; BACK</button>
       <div class="win"><div class="bar"><span>new_game.exe</span></div><div class="body">
         <p class="step-label">1. CHOOSE YOUR BATTLEGROUND</p>
         <div class="choices" id="arenas">
           <button class="card" data-v="website"><span class="pics"><img class="wide" src="${art('card-website')}" alt=""></span><b>${arena.name.toUpperCase()}</b><small>A web app, its database and the staff who run it.</small></button>
+          ${SOON.map((s) => `<button class="card soon" disabled><span class="pics">${s.icons.map((i) => `<img src="${art(i)}" alt="">`).join('')}</span><b>${s.name} <span class="tag">COMING SOON</span></b><small>${s.blurb}</small></button>`).join('')}
         </div>
         <div id="role-step" hidden>
           <p class="step-label" style="margin-top:18px">2. CHOOSE YOUR SIDE</p>
@@ -129,6 +139,7 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
   });
   $('start').addEventListener('click', () => onStart({ role: pick.role!, difficulty: LEVEL_SETUP[pick.difficulty!].settings, cpu: LEVEL_SETUP[pick.difficulty!].cpu, label: pick.difficulty!.toUpperCase() }));
   $('to-analysis').addEventListener('click', onAnalysis);
+  $('back').addEventListener('click', onBack);
 }
 
 const nm = (id: string) => [...arena.attackers, ...arena.defenders].find((x) => x.id === id)!.name;

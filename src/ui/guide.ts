@@ -39,12 +39,12 @@ export function moveNote(role: Role, id: string): string {
 }
 
 /** Full-screen, one idea per slide; Enter or click moves on, Esc skips. */
-export function briefing(root: HTMLElement, role: Role, done: () => void) {
+export function briefing(root: HTMLElement, role: Role, done: () => void, back: () => void) {
   const slides = BRIEFING[role];
   let i = 0;
   root.innerHTML = `<div class="brief"><div class="brief-card" id="card"></div>
     <div class="brief-foot"><div class="dots">${slides.map(() => '<i></i>').join('')}</div>
-    <span class="menu-foot" style="margin:0"><button class="btn" id="skip">SKIP</button><button class="btn primary" id="next">NEXT</button></span></div></div>`;
+    <span class="menu-foot" style="margin:0"><button class="btn" id="prev">BACK</button><button class="btn" id="skip">SKIP</button><button class="btn primary" id="next">NEXT</button></span></div></div>`;
   const card = root.querySelector<HTMLElement>('#card')!;
   const next = root.querySelector<HTMLButtonElement>('#next')!;
   const show = () => {
@@ -62,18 +62,26 @@ export function briefing(root: HTMLElement, role: Role, done: () => void) {
     removeEventListener('keydown', key);
     done();
   };
+  const leave = () => {
+    removeEventListener('keydown', key);
+    back();
+  };
   const step = (d: number) => {
     if (i + d >= slides.length) return finish();
+    if (i + d < 0) return leave();
     i = Math.max(0, i + d);
     show();
   };
   const key = (e: KeyboardEvent) => {
+    // left by the browser's Back button: stop listening
+    if (!card.isConnected) return removeEventListener('keydown', key);
     if (e.key === 'Enter' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); step(1); }
     else if (e.key === 'ArrowLeft') step(-1);
     else if (e.key === 'Escape') finish();
   };
   addEventListener('keydown', key);
   next.addEventListener('click', () => step(1));
+  root.querySelector('#prev')!.addEventListener('click', () => step(-1));
   root.querySelector('#skip')!.addEventListener('click', finish);
   show();
 }
@@ -116,6 +124,7 @@ export function tour(root: HTMLElement, steps: TourStep[], done = () => {}) {
   };
   const go = (): void => (++i >= steps.length ? end() : place());
   const key = (e: KeyboardEvent) => {
+    if (!shade.isConnected) return end();
     if (e.key === 'Enter') { e.preventDefault(); go(); }
     if (e.key === 'Escape') end();
   };

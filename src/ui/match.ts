@@ -33,7 +33,7 @@ function replay(e: HTMLElement, cls: string) {
   e.classList.add(cls);
 }
 
-export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: MatchEnd) => void) {
+export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: MatchEnd) => void, onQuit: () => void) {
   const st = arena.settings[setup.role][setup.difficulty];
   const rng = makeRng((Date.now() ^ (Math.random() * 2 ** 31)) >>> 0);
   const cpuAtt = setup.role === 'defender' ? makeAttackerCpu(setup.cpu, arena, st) : null;
@@ -48,7 +48,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
     <div class="stage">
       <div class="top-row">
         <h2>YOU ARE THE ${setup.role.toUpperCase()}</h2>
-        <span class="menu-foot" style="margin:0"><span class="tag">${setup.label} CPU</span><button class="btn" id="help">? HOW TO PLAY</button></span>
+        <span class="menu-foot" style="margin:0"><span class="tag">${setup.label} CPU</span><button class="btn" id="help">? HOW TO PLAY</button><button class="btn" id="quit">QUIT</button></span>
       </div>
       <div class="win status"><div class="body"><div class="hud" id="hud"></div></div></div>
       <div class="win topo"><div class="bar"><span>topology.pkt</span></div><div class="body">${topologySvg()}</div></div>
@@ -152,6 +152,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
     const felt = r.hunt === 'nothing-found' && r.phaseBefore === 'outside' ? null : r.hunt;
     if (setup.role === 'attacker') {
       await animate(svg, { attack: a, landed, defense: null, hit, foothold: state.phase === 'inside' ? 'yes' : 'no', backdoor: state.backdoor });
+      if (!svg.isConnected) return; // player left mid-animation
       const rep = attackerReport(r);
       $('report').className = `report ${rep.tone}`;
       $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}${state.winner ? '' : `<p class="tip-line"><b>TIP</b> ${tip('attacker', st, state, history, 0)}</p>`}`;
@@ -163,6 +164,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
         landed: r.attackSeen ? landed : true, defense: r.defense, hit,
         foothold: belief >= 1 ? 'yes' : belief > 0.3 ? 'unknown' : 'no', backdoor: false,
       });
+      if (!svg.isConnected) return;
       const rep = defenderReport(r, belief);
       $('report').className = `report ${rep.tone}`;
       $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}${state.winner ? '' : `<p class="tip-line"><b>TIP</b> ${tip('defender', st, state, history, belief)}</p>`}`;
@@ -195,5 +197,6 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
   const seen = (() => { try { return localStorage.getItem(key); } catch { return '1'; } })();
   const runTour = () => tour(root, TOUR[setup.role], () => { try { localStorage.setItem(key, '1'); } catch { /* private mode */ } });
   $('help').addEventListener('click', runTour);
+  $('quit').addEventListener('click', onQuit);
   if (!seen) setTimeout(runTour, 500);
 }

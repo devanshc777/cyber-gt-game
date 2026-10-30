@@ -269,3 +269,14 @@ th { font-family: var(--display); font-weight: 400; background: var(--paper-2); 
 .sliders label { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 12px; }
 .sliders input { accent-color: var(--net); }
 .chart.stackbar { max-width: 520px; margin-bottom: 4px; }
+
+/* menu: back link, locked battlegrounds */
+.setup .back { margin-bottom: 12px; }
+.card.soon { opacity: 0.55; cursor: not-allowed; }
+.card.soon img { filter: grayscale(1); }
+.card.soon .tag { font-size: 10px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+#arenas { grid-template-columns: 1fr 1fr; }
+#arenas .card:first-child { grid-column: 1 / -1; }
+.card.soon small { font-size: 12px; }
+.dark .win .step-label { color: var(--ink-2); }
+@media (max-width: 560px) { #arenas { grid-template-columns: 1fr; } }
