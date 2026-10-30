@@ -60,7 +60,7 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
       <div class="win"><div class="bar"><span>new_game.exe</span></div><div class="body">
         <p class="step-label">1. CHOOSE YOUR BATTLEGROUND</p>
         <div class="choices" id="arenas">
-          <button class="card" data-v="website"><span class="pics"><img src="${art('web')}" alt=""><img src="${art('db')}" alt=""></span><b>${arena.name.toUpperCase()}</b><small>A web app, its database and the staff who run it.</small></button>
+          <button class="card" data-v="website"><span class="pics"><img class="wide" src="${art('card-website')}" alt=""></span><b>${arena.name.toUpperCase()}</b><small>A web app, its database and the staff who run it.</small></button>
         </div>
         <div id="role-step" hidden>
           <p class="step-label" style="margin-top:18px">2. CHOOSE YOUR SIDE</p>
@@ -120,7 +120,7 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
 
 const nm = (id: string) => [...arena.attackers, ...arena.defenders].find((x) => x.id === id)!.name;
 
-const END_PIC = { breach: 'A8', caught: 'D1', timeout: 'fw' } as const;
+const END_PIC = { breach: 'end-breach', caught: 'end-caught', timeout: 'end-timeout' } as const;
 
 /** Result plus the full reveal: every round, both moves, now that the game is over. */
 export function endScreen(root: HTMLElement, e: MatchEnd, again: () => void, toMenu: () => void, onAnalysis: () => void) {
@@ -132,7 +132,7 @@ export function endScreen(root: HTMLElement, e: MatchEnd, again: () => void, toM
     <td>${r.compromiseDelta ? `+${r.compromiseDelta}` : ''}</td><td>${r.riskDelta > 0 ? '+' : ''}${+r.riskDelta.toFixed(2)}</td>
     <td>${r.attackSeen ? 'yes' : '<span class="reveal-hidden">no</span>'}</td></tr>`).join('');
   root.innerHTML = `
-    <div class="end-head"><img class="end-pic" src="${art(END_PIC[e.final.reason!])}" alt=""><h1>${won ? 'YOU WIN' : 'YOU LOSE'}</h1><span class="tag ${won ? 'net' : 'alert'}">${e.final.reason!.toUpperCase()}</span></div>
+    <img class="end-scene" src="${art(END_PIC[e.final.reason!])}" alt=""><div class="end-head"><h1>${won ? 'YOU WIN' : 'YOU LOSE'}</h1><span class="tag ${won ? 'net' : 'alert'}">${e.final.reason!.toUpperCase()}</span></div>
     <p>${REASON_TEXT[e.final.reason!]} Final: Compromise ${e.final.compromise}, Risk ${+e.final.risk.toFixed(1)}, budget left ${e.final.budget}, ${e.history.length} rounds.</p>
     <div class="menu-foot" style="margin-bottom:18px">
       <button class="btn primary" id="again">PLAY AGAIN</button><button class="btn" id="menu">MENU</button><button class="btn" id="an">ANALYSIS</button>

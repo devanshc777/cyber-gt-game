@@ -159,3 +159,13 @@ ASSET: end-<id>   SIZE: 800x450   BACKGROUND: #e8e7e1   DIRECTION: A+B
 - Not generated: effects (SVG packets and pings kept), end-state scenes (end screen reuses icons: breach = Exfiltrate,
   caught = IDS eye, timeout = firewall), the Website card (shows the web server and database icons).
 - Recut a sheet: `uv run --with pillow --with numpy --with scipy python -I art/process.py art/raw/<sheet>.png public/art <cols>x<rows> <ids...>`
+
+## Second pass (2026-10-30, his "keep consistency get all made" + motion)
+- Generated the rest in two fresh chats: effects + Website card (3x2, `art/raw/b4-effects.png`) and end scenes
+  (`b6-end.png`). The first "held" panel used warm orange (flame, sun), which means an attack landed, so it was
+  regenerated teal-only (`b6-end-held.png`). All 34 planned assets now exist; effects are single sprites animated in
+  code rather than frame strips.
+- `art/process.py`: a trailing `!` on a name keys all paper to alpha (open shapes like the ping rings).
+- Motion: ambient packets on every wire, idle bob on node icons, marching zone border, envelope packets, hit burst +
+  plate flash + window shake, blocked badge, ping rings, backdoor hatch, report slide/glitch, bars slide and changed
+  meters bump, cards deal in, menu CRT roll band + flicker, screens rise in. All off under prefers-reduced-motion.

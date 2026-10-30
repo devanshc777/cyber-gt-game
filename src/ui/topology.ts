@@ -25,20 +25,35 @@ export const art = (id: string) => `${import.meta.env.BASE_URL}art/${id}.png`;
 
 const ICON = 64;
 
-function shape(id: NodeId): string {
+function shape(id: NodeId, i: number): string {
   const { x, y } = NODES[id];
   const h = ICON / 2;
-  return `<rect class="plate" x="${x - h - 6}" y="${y - h - 6}" width="${ICON + 12}" height="${ICON + 12}" rx="6"/><image href="${art(id)}" x="${x - h}" y="${y - h}" width="${ICON}" height="${ICON}"/>`;
+  // staggered delays so the idle bob never moves the whole map in step
+  return `<rect class="plate" x="${x - h - 6}" y="${y - h - 6}" width="${ICON + 12}" height="${ICON + 12}" rx="6"/><image class="ico" style="animation-delay:${-i * 0.37}s" href="${art(id)}" x="${x - h}" y="${y - h}" width="${ICON}" height="${ICON}"/>`;
+}
+
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Background traffic: the network is always talking, teal inside the LAN, ink on the open internet. */
+function ambient(): string {
+  if (still()) return '';
+  return WIRES.map(([a, b, lan], i) => {
+    const d = `M${NODES[a].x},${NODES[a].y} L${NODES[b].x},${NODES[b].y}`;
+    const back = `M${NODES[b].x},${NODES[b].y} L${NODES[a].x},${NODES[a].y}`;
+    const dur = 2.4 + (i % 3) * 0.7;
+    return [d, back].map((path, k) =>
+      `<rect class="blip${lan ? ' lan' : ''}" x="-3" y="-3" width="6" height="6"><animateMotion dur="${dur}s" begin="${-(i * 0.9 + k * dur / 2)}s" repeatCount="indefinite" path="${path}"/></rect>`).join('');
+  }).join('');
 }
 
 export function topologySvg(): string {
   const wires = WIRES.map(([a, b, lan]) =>
     `<line class="wire${lan ? ' lan' : ''}" x1="${NODES[a].x}" y1="${NODES[a].y}" x2="${NODES[b].x}" y2="${NODES[b].y}"/>`).join('');
-  const nodes = (Object.keys(NODES) as NodeId[]).map((id) =>
-    `<g class="node" id="n-${id}">${shape(id)}<text x="${NODES[id].x}" y="${NODES[id].y + ICON / 2 + 20}">${NODES[id].label}</text></g>`).join('');
+  const nodes = (Object.keys(NODES) as NodeId[]).map((id, i) =>
+    `<g class="node" id="n-${id}">${shape(id, i)}<text x="${NODES[id].x}" y="${NODES[id].y + ICON / 2 + 20}">${NODES[id].label}</text></g>`).join('');
   return `<svg viewBox="0 0 640 340" role="img" aria-label="Network map: attacker, internet, firewall, and the website network with web server, database, staff PC and SOC">
     <rect class="zone" x="256" y="40" width="372" height="282" rx="4"/><text class="zone-label" x="268" y="58">WEBSITE NETWORK</text>
-    ${wires}${nodes}<g id="fx"></g></svg>`;
+    ${wires}<g id="ambient">${ambient()}</g>${nodes}<g id="fx"></g></svg>`;
 }
 
 const routes: Record<string, NodeId[]> = {
@@ -63,6 +78,11 @@ function el(tag: string, attrs: Record<string, string | number>): SVGElement {
   return e;
 }
 
+/** A generated effect sprite centred on (x, y). */
+function sprite(id: string, x: number, y: number, size: number, cls: string): SVGElement {
+  return el('image', { href: art(id), x: x - size / 2, y: y - size / 2, width: size, height: size, class: cls });
+}
+
 export interface Scene {
   attack: string | null; // null: the viewer did not see the attack
   landed: boolean;
@@ -77,11 +97,13 @@ export function animate(svg: SVGSVGElement, scene: Scene): Promise<void> {
   const fx = svg.querySelector('#fx')!;
   fx.innerHTML = '';
   svg.querySelectorAll('.node').forEach((n) => n.classList.remove('lit', 'hit', 'dim'));
+  const win = svg.closest('.win');
+  win?.classList.remove('shake');
   const node = (id: NodeId) => svg.querySelector(`#n-${id}`)!;
 
   for (const id of scene.defense ? defenseNodes[scene.defense]! : []) node(id).classList.add('lit');
   if (scene.defense === 'D7' || scene.defense === 'D1') {
-    for (const id of defenseNodes[scene.defense]!) fx.append(el('circle', { class: 'ping', cx: NODES[id].x, cy: NODES[id].y, r: 6 }));
+    for (const id of defenseNodes[scene.defense]!) fx.append(sprite('fx-ping', NODES[id].x, NODES[id].y, 40, 'ping'));
   }
   // The foothold badge shows the state after the round, so it waits until the packets have arrived.
   const badge = () => {
@@ -91,6 +113,7 @@ export function animate(svg: SVGSVGElement, scene: Scene): Promise<void> {
     const t = el('text', { class: 'badge', x: x + 18, y: y - 50 });
     t.textContent = scene.foothold === 'unknown' ? '??' : scene.backdoor ? 'IN + BD' : 'IN';
     fx.append(t);
+    if (scene.backdoor) fx.append(sprite('fx-backdoor', x - 34, y - 46, 26, 'pop'));
   };
 
   const done = new Promise<void>((resolve) => setTimeout(resolve, 1300));
@@ -105,7 +128,7 @@ export function animate(svg: SVGSVGElement, scene: Scene): Promise<void> {
   const count = scene.attack === 'A5' ? 6 : scene.attack === 'A3' ? 3 : 1;
   const end = NODES[path[path.length - 1]!];
   for (let i = 0; i < count; i++) {
-    const c = el('circle', { class: `packet${scene.landed ? '' : ' blocked'}`, r: 6, cx: 0, cy: 0 });
+    const c = el('image', { href: art('fx-packet'), x: -10, y: -10, width: 20, height: 20, class: 'packet' });
     const m = el('animateMotion', { dur: '0.9s', begin: `${i * 0.12}s`, fill: 'freeze', path: d });
     c.append(m);
     fx.append(c);
@@ -113,11 +136,14 @@ export function animate(svg: SVGSVGElement, scene: Scene): Promise<void> {
   }
   setTimeout(() => {
     badge();
-    if (scene.landed) for (const id of scene.hit) node(id).classList.add('hit');
-    else {
-      fx.append(el('line', { class: 'xmark', x1: end.x - 10, y1: end.y - 10, x2: end.x + 10, y2: end.y + 10 }));
-      fx.append(el('line', { class: 'xmark', x1: end.x + 10, y1: end.y - 10, x2: end.x - 10, y2: end.y + 10 }));
-    }
+    fx.querySelectorAll('.packet').forEach((p) => p.remove());
+    if (scene.landed) {
+      for (const id of scene.hit) {
+        node(id).classList.add('hit');
+        fx.append(sprite('fx-hit', NODES[id].x, NODES[id].y, 56, 'burst'));
+      }
+      win?.classList.add('shake');
+    } else fx.append(sprite('fx-blocked', end.x + 30, end.y - 34, 40, 'pop'));
   }, 950);
   return done;
 }

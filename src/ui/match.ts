@@ -13,9 +13,23 @@ const name = (id: string) => [...arena.attackers, ...arena.defenders].find((x) =
 const signed = (x: number) => (x > 0 ? `+${x}` : `${x}`);
 const fmt = (x: number) => (Number.isInteger(x) ? `${x}` : x.toFixed(1));
 
+// Last shown value per meter, so a re-render can slide each bar from where it was and flag what changed.
+const shown = new Map<string, { value: string; fill: number }>();
+
 function meter(label: string, value: string, fill?: number, opts: { hot?: boolean; mark?: number; right?: string } = {}) {
-  const bar = fill === undefined ? '' : `<div class="bar-track"><div class="bar-fill${opts.hot ? ' hot' : ''}" style="width:${Math.min(100, fill)}%"></div>${opts.mark === undefined ? '' : `<div class="bar-mark" style="left:${opts.mark}%"></div>`}</div>`;
-  return `<div class="meter"><div class="k"><span>${label}</span><span>${opts.right ?? ''}</span></div><div class="v">${value}</div>${bar}</div>`;
+  const before = shown.get(label);
+  const to = Math.min(100, fill ?? 0);
+  shown.set(label, { value, fill: to });
+  const bar = fill === undefined ? '' : `<div class="bar-track"><div class="bar-fill${opts.hot ? ' hot' : ''}" style="width:${before?.fill ?? to}%" data-w="${to}"></div>${opts.mark === undefined ? '' : `<div class="bar-mark" style="left:${opts.mark}%"></div>`}</div>`;
+  const bump = before && before.value !== value ? ' bump' : '';
+  return `<div class="meter${bump}"><div class="k"><span>${label}</span><span>${opts.right ?? ''}</span></div><div class="v">${value}</div>${bar}</div>`;
+}
+
+/** Restart a one-shot CSS animation on an element whose content just changed. */
+function replay(e: HTMLElement, cls: string) {
+  e.classList.remove(cls);
+  void e.offsetWidth;
+  e.classList.add(cls);
 }
 
 export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: MatchEnd) => void) {
@@ -27,6 +41,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
   const history: RoundResult[] = [];
   const lines: string[] = [];
   let busy = false;
+  shown.clear();
 
   root.innerHTML = `
     <div class="top-row">
@@ -58,6 +73,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
         meter('RISK', fmt(state.risk), state.risk, { mark: st.threshold, right: `trace at ${st.threshold}`, hot: state.risk >= st.threshold }),
         meter('KNOWLEDGE', `${state.knowledge} / 5`, state.knowledge * 20),
       ].join('');
+      slideBars();
     } else {
       const b = insideBelief(defenderView(state, history));
       $('hud').innerHTML = [
@@ -66,17 +82,22 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
         meter('COMPROMISE', fmt(state.compromise), state.compromise, { hot: true }),
         meter('SUSPICION', `${Math.round(b * 100)}%`, b * 100),
       ].join('');
+      slideBars();
     }
+  }
+
+  function slideBars() {
+    requestAnimationFrame(() => $('hud').querySelectorAll<HTMLElement>('.bar-fill').forEach((f) => (f.style.width = `${f.dataset.w}%`)));
   }
 
   function renderActions() {
     const ids = setup.role === 'attacker' ? attackerOptions(arena, state.phase) : arena.defenders.map((d) => d.id);
     const ok = setup.role === 'defender' ? affordable(arena, state.budget) : ids;
-    $('actions').innerHTML = ids.map((id) => {
+    $('actions').innerHTML = ids.map((id, i) => {
       const meta = setup.role === 'attacker'
         ? `risk ${arena.attackers.find((a) => a.id === id)!.baseRisk > 0 ? '+' : ''}${arena.attackers.find((a) => a.id === id)!.baseRisk}`
         : `cost ${arena.defenders.find((d) => d.id === id)!.cost}`;
-      return `<button class="act" data-id="${id}" ${ok.includes(id) && !state.winner ? '' : 'disabled'}><img src="${art(id)}" alt=""><b>${name(id)}<i>${meta}</i></b><small>${ACTION_BLURB[id]}</small></button>`;
+      return `<button class="act" style="--i:${i}" data-id="${id}" ${ok.includes(id) && !state.winner ? '' : 'disabled'}><img src="${art(id)}" alt=""><b>${name(id)}<i>${meta}</i></b><small>${ACTION_BLURB[id]}</small></button>`;
     }).join('');
     $('actions').querySelectorAll<HTMLButtonElement>('.act').forEach((b) => b.addEventListener('click', () => play(b.dataset.id!)));
   }
@@ -131,6 +152,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
       const rep = attackerReport(r);
       $('report').className = `report ${rep.tone}`;
       $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}`;
+      replay($('report'), 'in');
     } else {
       const belief = insideBelief(defenderView(state, history));
       await animate(svg, {
@@ -141,6 +163,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
       const rep = defenderReport(r, belief);
       $('report').className = `report ${rep.tone}`;
       $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}`;
+      replay($('report'), 'in');
     }
     lines.unshift(`<div>R${r.round} ${setup.role === 'attacker' ? `${name(a)}${r.blocked ? ' (blocked)' : ''}${r.breached ? ' BREACH' : ''}${r.hunt ? ` [${r.hunt}]` : ''}` : `${name(r.defense)}${r.attackSeen ? ` / saw ${name(a)}` : ''}${r.hunt ? ` [${r.hunt}]` : ''}`} · C ${fmt(state.compromise)}</div>`);
     $('log').innerHTML = lines.join('');

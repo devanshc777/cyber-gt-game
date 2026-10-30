@@ -1,7 +1,8 @@
 """Cut a generated sheet into assets and force them onto the game palette.
 
 usage: uv run --with pillow --with numpy --with scipy python -I art/process.py <sheet.png> <out_dir> <cols>x<rows> name1 name2 ...
-       names are read left to right, top to bottom. A name of "-" skips that cell.
+       names are read left to right, top to bottom. A name of "-" skips that cell; a trailing "!" (ping!) makes
+       all paper transparent, for open shapes like rings.
        --whole <name>  keeps the image as one asset (scenes) instead of cutting it.
 
 Each pixel snaps to the nearest palette colour (GPT does not hold exact hexes). Paper that touches the outside of an
@@ -80,7 +81,7 @@ def main():
         sq = np.zeros((side, side), dtype=crop.dtype)
         y0, x0 = (side - h) // 2, (side - w) // 2
         sq[y0:y0 + h, x0:x0 + w] = crop
-        to_rgba(sq, keep_inside=True).save(out / f'{name}.png', optimize=True)
+        to_rgba(sq, keep_inside=not name.endswith("!")).save(out / f"{name.rstrip('!')}.png", optimize=True)
         print(name, side)
 
 
