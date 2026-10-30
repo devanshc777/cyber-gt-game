@@ -33,3 +33,18 @@ Readings of rules the spec leaves open. Written against v1; under v2, A1-A3, A5-
 | 2026-10-30 | A10 (s7) | Defender-role games (CPU attacker) use the Normal risk settings: x1.0, threshold 40. s7.1 lists no risk settings for that mode. | engine reading, flag if wrong |
 | 2026-10-30 | A12 (s5.8) | At exactly R = threshold the caught chance is 0, so no roll is made. Keeps the RNG stream free of rolls that cannot matter. | engine reading |
 | 2026-10-30 | A11 (s5.5) | C is capped at 100 as well as floored at 0 (s2 gives its range as 0-100). | engine reading |
+
+## Proposed, not applied: Easy for a newcomer (2026-10-30)
+His bar: a newcomer on Easy should be able to win. `npx vite-node tools/playtest.ts 2000` measures a player who
+picks at random and one who follows every in-game tip. Defender Easy already works (67% random, 93% tips). Attacker
+Easy does not: 3% random, 14% tips (83% of tip-followers run out the clock). Attacker win % on Easy, 2000 games each:
+
+| Easy attacker variant | random player | follows tips |
+|---|---|---|
+| now: Easy CPU, risk x0.75, trace line 50 | 3% | 14% |
+| defender CPU picks at random | 26% | 73% |
+| risk x0.5, trace line 60 | 14% | 29% |
+| 25 rounds | 8% | 84% |
+| risk x0.5, line 60, CPU random | 41% | 87% |
+
+Awaiting his pick. The same run re-derives every round from s5 independently: 207,969 rounds, all match.

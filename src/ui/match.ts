@@ -93,6 +93,16 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
     hud.querySelectorAll<HTMLElement>('.bar-fill').forEach((f) => (f.style.width = `${f.dataset.w}%`));
   }
 
+  // Tips are a nudge, not a guide: always in the first two rounds, then about one round in three, never the same
+  // line twice running. They are simple heuristics on purpose and can be wrong; following them every round loses.
+  let lastTip = '';
+  function tipLine(text: string) {
+    const show = !state.winner && text !== lastTip && (history.length <= 2 || Math.random() < 0.35);
+    if (!show) return '';
+    lastTip = text;
+    return `<p class="tip-line"><b>TIP</b> ${text}</p>`;
+  }
+
   function renderActions() {
     const ids = setup.role === 'attacker' ? attackerOptions(arena, state.phase) : arena.defenders.map((d) => d.id);
     const ok = setup.role === 'defender' ? affordable(arena, state.budget) : ids;
@@ -159,7 +169,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
       if (!svg.isConnected) return; // player left mid-animation
       const rep = attackerReport(r);
       $('report').className = `report ${rep.tone}`;
-      $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}${state.winner ? '' : `<p class="tip-line"><b>TIP</b> ${tip('attacker', st, state, history, 0)}</p>`}`;
+      $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}${tipLine(tip('attacker', st, state, history, 0))}`;
       replay($('report'), 'in');
     } else {
       const belief = insideBelief(defenderView(state, history));
@@ -171,7 +181,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
       if (!svg.isConnected) return;
       const rep = defenderReport(r, belief);
       $('report').className = `report ${rep.tone}`;
-      $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}${state.winner ? '' : `<p class="tip-line"><b>TIP</b> ${tip('defender', st, state, history, belief)}</p>`}`;
+      $('report').innerHTML = `<h3>ROUND ${r.round}</h3>${rep.html}${tipLine(tip('defender', st, state, history, belief))}`;
       replay($('report'), 'in');
     }
     heat();
