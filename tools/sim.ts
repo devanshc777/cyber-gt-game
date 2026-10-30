@@ -71,7 +71,7 @@ const t0 = Date.now();
 const grid = kinds.flatMap((a) => kinds.map((d) => batch(`${a} vs ${d}`, normal, a, d, index++)));
 // Difficulty ladder: the Nash CPU stands in for a strong player against each difficulty's CPU and settings.
 const ladder = (['easy', 'normal', 'hard'] as Difficulty[]).flatMap((diff) => [
-  { role: 'attacker', difficulty: diff, ...batch(`player-attacker ${diff}`, arena.settings.attacker[diff], 'nash', cpuFor[diff], index++) },
+  { role: 'attacker', difficulty: diff, ...batch(`player-attacker ${diff}`, arena.settings.attacker[diff], 'nash', diff === 'easy' ? 'random' : cpuFor[diff], index++) },
   { role: 'defender', difficulty: diff, ...batch(`player-defender ${diff}`, arena.settings.defender[diff], cpuFor[diff], 'nash', index++) },
 ]).concat([
   // The learned tier plays on Normal rules, the settings it was trained on.

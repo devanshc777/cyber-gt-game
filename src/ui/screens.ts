@@ -33,7 +33,7 @@ export const LEVEL_SETUP: Record<Level, { settings: Difficulty; cpu: CpuKind }> 
 
 const DIFF_TEXT: Record<Role, Record<Level, string>> = {
   attacker: {
-    easy: 'Trace line at 50, risk x0.75. The defender half-guesses.',
+    easy: 'Trace line at 50, risk x0.75. The defender guesses at random.',
     normal: 'Trace line at 40. The defender counters what it has seen.',
     hard: 'Trace line at 30, risk x1.25. The defender solves the game each round.',
     learned: 'Normal rules. The defender learned its play over 20,000 self-play games.',
@@ -137,7 +137,9 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
     select($('diffs'), pick.difficulty);
     ready();
   });
-  $('start').addEventListener('click', () => onStart({ role: pick.role!, difficulty: LEVEL_SETUP[pick.difficulty!].settings, cpu: LEVEL_SETUP[pick.difficulty!].cpu, label: pick.difficulty!.toUpperCase() }));
+  // Attacker Easy faces a defender that picks at random: a newcomer can win it (his call 2026-10-30, SPEC-CHANGES).
+  const cpuFor = (r: Role, l: Level): CpuKind => (r === 'attacker' && l === 'easy' ? 'random' : LEVEL_SETUP[l].cpu);
+  $('start').addEventListener('click', () => onStart({ role: pick.role!, difficulty: LEVEL_SETUP[pick.difficulty!].settings, cpu: cpuFor(pick.role!, pick.difficulty!), label: pick.difficulty!.toUpperCase() }));
   $('to-analysis').addEventListener('click', onAnalysis);
   $('back').addEventListener('click', onBack);
 }

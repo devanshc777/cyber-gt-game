@@ -63,7 +63,7 @@ Generated from `public/data/sim.json` (seed 1, 10,000 games per batch) by `tools
 
 | player side | level | player win % | settings |
 | --- | --- | --- | --- |
-| attacker | easy | 80.36 | rounds 20, budget 20, riskScale 0.75, threshold 50 |
+| attacker | easy | 94.07 | rounds 20, budget 20, riskScale 0.75, threshold 50 |
 | defender | easy | 99.34 | rounds 20, budget 26, riskScale 1, threshold 40 |
 | attacker | normal | 67.08 | rounds 20, budget 20, riskScale 1, threshold 40 |
 | defender | normal | 51.57 | rounds 20, budget 20, riskScale 1, threshold 40 |

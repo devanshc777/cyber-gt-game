@@ -162,7 +162,7 @@ Budget is one-time by default: the defender must ration across 20 rounds. Risk u
 ### 7.2 Attacker role (player is the attacker)
 | Difficulty | Risk multiplier | Caught threshold | CPU defender |
 |---|---|---|---|
-| Easy | x0.75 | 50 | Random / greedy |
+| Easy | x0.75 | 50 | Random (changed 2026-10-30, see SPEC-CHANGES) |
 | Normal | x1.0 | 40 | Greedy best-response |
 | Hard | x1.25 | 30 | Nash mixed strategy |
 

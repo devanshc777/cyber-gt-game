@@ -117,7 +117,8 @@ const tipDef: Def = (s, h, rng) => {
 
 function play(role: Role, level: 'easy' | 'normal', me: Att | Def, seed: number) {
   const st = arena.settings[role][level];
-  const kind: CpuKind = level === 'easy' ? 'easy' : 'greedy';
+  // matches the game: attacker Easy faces a random defender, defender Easy an Easy attacker
+  const kind: CpuKind = level === 'normal' ? 'greedy' : role === 'attacker' ? 'random' : 'easy';
   const cpuA = makeAttackerCpu(kind, arena, st), cpuD = makeDefenderCpu(kind, arena, st);
   const rng = makeRng(seed);
   let s = newGame(st);
