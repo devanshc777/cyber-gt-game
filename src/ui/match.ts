@@ -4,7 +4,7 @@ import { attackerView, defenderView, insideBelief, makeAttackerCpu, makeDefender
 import { makeRng } from '../engine/rng';
 import type { Difficulty, GameState, Role, RoundResult } from '../engine/types';
 import { ACTION_BLURB } from './copy';
-import { animate, topologySvg, type NodeId } from './topology';
+import { animate, art, topologySvg, type NodeId } from './topology';
 
 export interface MatchSetup { role: Role; difficulty: Difficulty; cpu: CpuKind; label: string }
 export interface MatchEnd { setup: MatchSetup; final: GameState; history: RoundResult[] }
@@ -76,7 +76,7 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
       const meta = setup.role === 'attacker'
         ? `risk ${arena.attackers.find((a) => a.id === id)!.baseRisk > 0 ? '+' : ''}${arena.attackers.find((a) => a.id === id)!.baseRisk}`
         : `cost ${arena.defenders.find((d) => d.id === id)!.cost}`;
-      return `<button class="act" data-id="${id}" ${ok.includes(id) && !state.winner ? '' : 'disabled'}><b>${name(id)}<i>${meta}</i></b><small>${ACTION_BLURB[id]}</small></button>`;
+      return `<button class="act" data-id="${id}" ${ok.includes(id) && !state.winner ? '' : 'disabled'}><img src="${art(id)}" alt=""><b>${name(id)}<i>${meta}</i></b><small>${ACTION_BLURB[id]}</small></button>`;
     }).join('');
     $('actions').querySelectorAll<HTMLButtonElement>('.act').forEach((b) => b.addEventListener('click', () => play(b.dataset.id!)));
   }

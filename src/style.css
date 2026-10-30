@@ -1,4 +1,4 @@
-/* Provisional skin until the art direction is picked (docs/ART-DIRECTION.md, direction A+B read):
+/* Skin for art direction A+B (picked 2026-10-30, docs/ART-SPECS.md):
    a 1-bit paper-and-ink world where blue-green is the only living colour (the network) and the warm
    accent appears only when an attack lands. */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Silkscreen:wght@400;700&display=swap');
@@ -83,6 +83,16 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; letter-sp
 .card b { font-family: var(--display); font-weight: 400; font-size: 16px; }
 .card small { color: var(--ink-2); }
 .menu-foot { display: flex; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.card .pics { display: flex; gap: 4px; }
+.card .pics img { width: 40px; height: 40px; }
+.card.on .pics img { background: var(--paper); border-radius: 4px; }
+/* the menu scene keeps its left side quiet; the title and boot text sit there */
+.hero .screen { aspect-ratio: 16 / 9; background: var(--ink) center / cover no-repeat; padding: 6% 5%; color: var(--paper); container-type: inline-size; }
+.hero .title { font-size: 8cqi; max-width: 55%; }
+.hero .title em { color: var(--net-soft); }
+.hero .note { color: var(--paper-2); max-width: 46%; font-size: max(11px, 2.4cqi); }
+.hero .boot { background: var(--ink); color: var(--paper-2); margin: 0; padding: 10px 14px; border-top: 2px solid var(--ink); }
+.end-pic { width: 72px; height: 72px; align-self: center; }
 
 /* match */
 .match { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
@@ -97,7 +107,9 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; letter-sp
 .bar-fill.hot { background: var(--alert); }
 .bar-mark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
 .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.act { text-align: left; border: 2px solid var(--ink); background: var(--paper); padding: 8px 10px; box-shadow: 2px 2px 0 var(--ink); }
+.act { text-align: left; border: 2px solid var(--ink); background: var(--paper); padding: 8px 10px; box-shadow: 2px 2px 0 var(--ink); display: grid; grid-template-columns: 36px 1fr; column-gap: 8px; align-items: center; }
+.act img { width: 36px; height: 36px; display: block; }
+.act small { grid-column: 1 / -1; }
 .act:hover:not(:disabled) { background: var(--net-soft); }
 .act:disabled { opacity: 0.35; cursor: not-allowed; }
 .act b { display: flex; justify-content: space-between; font-weight: 600; gap: 6px; }
@@ -115,10 +127,11 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; letter-sp
 .tag.alert { background: var(--alert); color: var(--paper); border-color: var(--alert); }
 
 /* topology */
-.node rect, .node circle, .node path.shape { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+/* the plate hides wires behind each icon and carries the state colour */
+.node .plate { fill: var(--paper); stroke: transparent; stroke-width: 2; transition: fill 0.2s, stroke 0.2s; }
 .node text { font: 11px var(--display); fill: var(--ink); text-anchor: middle; }
-.node.lit rect, .node.lit circle, .node.lit path.shape { fill: var(--net-soft); stroke: var(--net); }
-.node.hit rect, .node.hit circle, .node.hit path.shape { fill: var(--alert-soft); stroke: var(--alert); }
+.node.lit .plate { fill: var(--net-soft); stroke: var(--net); }
+.node.hit .plate { fill: var(--alert-soft); stroke: var(--alert); }
 .node.dim { opacity: 0.35; }
 .wire { stroke: var(--ink); stroke-width: 2; fill: none; }
 .wire.lan { stroke: var(--net); }

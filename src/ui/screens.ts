@@ -3,6 +3,7 @@ import type { Difficulty, Role } from '../engine/types';
 import type { CpuKind } from '../engine/cpu';
 import { REASON_TEXT, SUBTITLE, TITLE } from './copy';
 import type { MatchEnd, MatchSetup } from './match';
+import { art } from './topology';
 
 const BOOT = [
   'BIOS 1.0 .......... ok',
@@ -41,9 +42,10 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
   root.innerHTML = `
     <div class="menu">
       <div>
-        <h1 class="title">ATTACKER<br><em>//</em> DEFENDER</h1>
-        <p class="note">${SUBTITLE}</p>
-        <div class="boot" id="boot"></div>
+        <div class="win hero"><div class="bar"><span>terminal</span></div><div class="screen" style="background-image:url(${import.meta.env.BASE_URL}art/menu.jpg)">
+          <h1 class="title">ATTACKER<br><em>//</em> DEFENDER</h1>
+          <p class="note">${SUBTITLE}</p>
+        </div><div class="boot" id="boot"></div></div>
         <div class="menu-foot">
           <button class="link" id="to-analysis">Game theory analysis</button>
           <button class="link" id="to-how">How a round works</button>
@@ -58,13 +60,13 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
       <div class="win"><div class="bar"><span>new_game.exe</span></div><div class="body">
         <p class="step-label">1. CHOOSE YOUR BATTLEGROUND</p>
         <div class="choices" id="arenas">
-          <button class="card" data-v="website"><b>${arena.name.toUpperCase()}</b><small>A web app, its database and the staff who run it.</small></button>
+          <button class="card" data-v="website"><span class="pics"><img src="${art('web')}" alt=""><img src="${art('db')}" alt=""></span><b>${arena.name.toUpperCase()}</b><small>A web app, its database and the staff who run it.</small></button>
         </div>
         <div id="role-step" hidden>
           <p class="step-label" style="margin-top:18px">2. CHOOSE YOUR SIDE</p>
           <div class="choices" id="roles" style="grid-template-columns:1fr 1fr">
-            <button class="card" data-v="attacker"><b>ATTACKER</b><small>Short on time. Risk rises with every move.</small></button>
-            <button class="card" data-v="defender"><b>DEFENDER</b><small>Short on money. Budget never refills.</small></button>
+            <button class="card" data-v="attacker"><span class="pics"><img src="${art('atk')}" alt=""></span><b>ATTACKER</b><small>Short on time. Risk rises with every move.</small></button>
+            <button class="card" data-v="defender"><span class="pics"><img src="${art('soc')}" alt=""></span><b>DEFENDER</b><small>Short on money. Budget never refills.</small></button>
           </div>
         </div>
         <div id="diff-step" hidden>
@@ -118,6 +120,8 @@ export function menu(root: HTMLElement, onStart: (s: MatchSetup) => void, onAnal
 
 const nm = (id: string) => [...arena.attackers, ...arena.defenders].find((x) => x.id === id)!.name;
 
+const END_PIC = { breach: 'A8', caught: 'D1', timeout: 'fw' } as const;
+
 /** Result plus the full reveal: every round, both moves, now that the game is over. */
 export function endScreen(root: HTMLElement, e: MatchEnd, again: () => void, toMenu: () => void, onAnalysis: () => void) {
   const won = e.final.winner === e.setup.role;
@@ -128,7 +132,7 @@ export function endScreen(root: HTMLElement, e: MatchEnd, again: () => void, toM
     <td>${r.compromiseDelta ? `+${r.compromiseDelta}` : ''}</td><td>${r.riskDelta > 0 ? '+' : ''}${+r.riskDelta.toFixed(2)}</td>
     <td>${r.attackSeen ? 'yes' : '<span class="reveal-hidden">no</span>'}</td></tr>`).join('');
   root.innerHTML = `
-    <div class="end-head"><h1>${won ? 'YOU WIN' : 'YOU LOSE'}</h1><span class="tag ${won ? 'net' : 'alert'}">${e.final.reason!.toUpperCase()}</span></div>
+    <div class="end-head"><img class="end-pic" src="${art(END_PIC[e.final.reason!])}" alt=""><h1>${won ? 'YOU WIN' : 'YOU LOSE'}</h1><span class="tag ${won ? 'net' : 'alert'}">${e.final.reason!.toUpperCase()}</span></div>
     <p>${REASON_TEXT[e.final.reason!]} Final: Compromise ${e.final.compromise}, Risk ${+e.final.risk.toFixed(1)}, budget left ${e.final.budget}, ${e.history.length} rounds.</p>
     <div class="menu-foot" style="margin-bottom:18px">
       <button class="btn primary" id="again">PLAY AGAIN</button><button class="btn" id="menu">MENU</button><button class="btn" id="an">ANALYSIS</button>

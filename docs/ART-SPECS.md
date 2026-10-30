@@ -149,3 +149,13 @@ ASSET: end-<id>   SIZE: 800x450   BACKGROUND: #e8e7e1   DIRECTION: A+B
 - Menu boot copy and every other word on screen.
 - Every subject line above is a first suggestion. Strike or rewrite any of them before batch 1.
 - "KM art" pins: if they change line or shading, this sheet changes before batch 1, not after.
+
+## What shipped (2026-10-30, first pass, his "gen assets plug n show")
+- Generated in his ChatGPT, one fresh chat per sheet: nodes (4x2), attacker icons (3x3), defender icons (4x2), menu
+  scene. Raw sheets in `art/raw/`. Sheets beat one-per-icon on time, and grid drift does not matter because
+  `art/process.py` groups ink by grid cell, snaps to the palette and keys outside paper to alpha.
+- The menu scene is used raw (`public/art/menu.jpg`): palette snapping broke its screen diagram, and GPT had held
+  the palette on its own.
+- Not generated: effects (SVG packets and pings kept), end-state scenes (end screen reuses icons: breach = Exfiltrate,
+  caught = IDS eye, timeout = firewall), the Website card (shows the web server and database icons).
+- Recut a sheet: `uv run --with pillow --with numpy --with scipy python -I art/process.py art/raw/<sheet>.png public/art <cols>x<rows> <ids...>`

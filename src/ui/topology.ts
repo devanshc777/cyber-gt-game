@@ -20,20 +20,22 @@ const WIRES: [NodeId, NodeId, boolean][] = [
   ['fw', 'staff', true], ['staff', 'soc', true], ['db', 'soc', true],
 ];
 
+/** Generated art lives in public/art, one PNG per node or action id. */
+export const art = (id: string) => `${import.meta.env.BASE_URL}art/${id}.png`;
+
+const ICON = 64;
+
 function shape(id: NodeId): string {
   const { x, y } = NODES[id];
-  if (id === 'net') return `<path class="shape" d="M${x - 34},${y + 12} q-8,-22 14,-24 q6,-18 26,-10 q16,-12 26,6 q18,2 12,28 z"/>`;
-  if (id === 'fw') return `<rect x="${x - 26}" y="${y - 22}" width="52" height="44"/><path d="M${x - 26},${y - 7}h52M${x - 26},${y + 8}h52M${x - 9},${y - 22}v15M${x + 9},${y - 7}v15M${x - 9},${y + 8}v14" stroke="currentColor" style="stroke:var(--ink)"/>`;
-  if (id === 'db') return `<path class="shape" d="M${x - 24},${y - 16}v32a24,8 0 0 0 48,0v-32a24,8 0 0 0 -48,0a24,8 0 0 0 48,0"/>`;
-  if (id === 'atk' || id === 'staff' || id === 'soc') return `<rect x="${x - 26}" y="${y - 20}" width="52" height="34"/><path d="M${x - 14},${y + 20}h28" style="stroke:var(--ink);stroke-width:3"/>`;
-  return `<rect x="${x - 22}" y="${y - 28}" width="44" height="56"/><path d="M${x - 14},${y - 14}h28M${x - 14},${y - 4}h28M${x - 14},${y + 6}h28" style="stroke:var(--ink)"/>`;
+  const h = ICON / 2;
+  return `<rect class="plate" x="${x - h - 6}" y="${y - h - 6}" width="${ICON + 12}" height="${ICON + 12}" rx="6"/><image href="${art(id)}" x="${x - h}" y="${y - h}" width="${ICON}" height="${ICON}"/>`;
 }
 
 export function topologySvg(): string {
   const wires = WIRES.map(([a, b, lan]) =>
     `<line class="wire${lan ? ' lan' : ''}" x1="${NODES[a].x}" y1="${NODES[a].y}" x2="${NODES[b].x}" y2="${NODES[b].y}"/>`).join('');
   const nodes = (Object.keys(NODES) as NodeId[]).map((id) =>
-    `<g class="node" id="n-${id}">${shape(id)}<text x="${NODES[id].x}" y="${NODES[id].y + (id === 'web' ? 46 : 38)}">${NODES[id].label}</text></g>`).join('');
+    `<g class="node" id="n-${id}">${shape(id)}<text x="${NODES[id].x}" y="${NODES[id].y + ICON / 2 + 20}">${NODES[id].label}</text></g>`).join('');
   return `<svg viewBox="0 0 640 340" role="img" aria-label="Network map: attacker, internet, firewall, and the website network with web server, database, staff PC and SOC">
     <rect class="zone" x="256" y="40" width="372" height="282" rx="4"/><text class="zone-label" x="268" y="58">WEBSITE NETWORK</text>
     ${wires}${nodes}<g id="fx"></g></svg>`;
@@ -85,8 +87,8 @@ export function animate(svg: SVGSVGElement, scene: Scene): Promise<void> {
   const badge = () => {
     if (scene.foothold === 'no') return;
     const { x, y } = NODES.web;
-    fx.append(el('rect', { class: 'badge-bg', x: x + 14, y: y - 44, width: scene.backdoor ? 62 : 22, height: 16, style: scene.foothold === 'unknown' ? 'opacity:.5' : '' }));
-    const t = el('text', { class: 'badge', x: x + 18, y: y - 32 });
+    fx.append(el('rect', { class: 'badge-bg', x: x + 14, y: y - 62, width: scene.backdoor ? 62 : 22, height: 16, style: scene.foothold === 'unknown' ? 'opacity:.5' : '' }));
+    const t = el('text', { class: 'badge', x: x + 18, y: y - 50 });
     t.textContent = scene.foothold === 'unknown' ? '??' : scene.backdoor ? 'IN + BD' : 'IN';
     fx.append(t);
   };
