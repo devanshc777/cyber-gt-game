@@ -126,3 +126,68 @@ export function attachTooltips(root: HTMLElement) {
   });
   root.addEventListener('mouseleave', () => (tip.hidden = true));
 }
+
+const FONT_CSS = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap';
+let fontFace: Promise<string> | null = null;
+
+/** The page font as data-URI @font-face rules: an SVG drawn as an image cannot reach the page's fonts. */
+function embeddedFont(): Promise<string> {
+  fontFace ??= (async () => {
+    const css = await (await fetch(FONT_CSS)).text();
+    // latin subset only keeps each figure small
+    const blocks = css.split('@font-face').filter((b) => b.includes('U+0000-00FF'));
+    const out: string[] = [];
+    for (const block of blocks) {
+      const url = block.match(/https:[^)]+\.woff2/)?.[0];
+      if (!url) continue;
+      const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+      let bin = '';
+      bytes.forEach((b) => (bin += String.fromCharCode(b)));
+      out.push('@font-face' + block.replace(url, `data:font/woff2;base64,${btoa(bin)}`));
+    }
+    return out.join(' ');
+  })();
+  return fontFace;
+}
+
+const STYLE_PROPS = ['fill', 'stroke', 'stroke-width', 'font-family', 'font-size', 'font-weight', 'text-anchor'] as const;
+
+/** A page chart as a standalone PNG for the report: styles inlined, font embedded, paper background, legend drawn in. */
+export async function chartPng(svg: SVGSVGElement, legendEl: Element | null, scale = 3): Promise<Blob> {
+  const copy = svg.cloneNode(true) as SVGSVGElement;
+  const from = [svg, ...svg.querySelectorAll('*')], to = [copy, ...copy.querySelectorAll('*')];
+  from.forEach((el, i) => {
+    const cs = getComputedStyle(el);
+    (to[i] as SVGElement).setAttribute('style', STYLE_PROPS.map((p) => `${p}:${cs.getPropertyValue(p)}`).join(';'));
+  });
+  const [, , w, h0] = copy.getAttribute('viewBox')!.split(' ').map(Number) as [number, number, number, number];
+  let h = h0;
+  if (legendEl) {
+    // the page legend is HTML; redraw it as one row of swatches under the plot
+    let x = 4;
+    h += 26;
+    for (const item of legendEl.querySelectorAll('span')) {
+      const color = (item.querySelector('i') as HTMLElement).style.background;
+      copy.insertAdjacentHTML('beforeend', `<rect x="${x}" y="${h - 16}" width="12" height="12" rx="2" fill="${color}"/><text x="${x + 18}" y="${h - 6}" style="font-family:IBM Plex Mono;font-size:12px;fill:#111312">${esc(item.textContent!)}</text>`);
+      x += 30 + item.textContent!.length * 7.5;
+    }
+  }
+  copy.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  copy.setAttribute('width', `${w}`);
+  copy.setAttribute('height', `${h}`);
+  copy.insertAdjacentHTML('afterbegin', `<style>${await embeddedFont()}</style><rect x="0" y="0" width="${w}" height="${h}" fill="#e8e7e1"/>`);
+  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)], { type: 'image/svg+xml' }));
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  const pad = 16;
+  const canvas = document.createElement('canvas');
+  canvas.width = (w + 2 * pad) * scale;
+  canvas.height = (h + 2 * pad) * scale;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#e8e7e1';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, pad * scale, pad * scale, w * scale, h * scale);
+  URL.revokeObjectURL(url);
+  return new Promise((r) => canvas.toBlob((b) => r(b!), 'image/png'));
+}

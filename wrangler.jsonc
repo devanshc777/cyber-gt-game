@@ -1,0 +1,6 @@
+// Static deploy: the built game is plain files, served by Workers static assets. Run `npm run deploy`.
+{
+  "name": "cyber-gt-game",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./dist" }
+}

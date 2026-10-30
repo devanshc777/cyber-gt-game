@@ -4,7 +4,7 @@ import { website as arena } from '../engine/arenas/website';
 import { attackerOptions } from '../engine/engine';
 import { solveZeroSum } from '../engine/lp';
 import policy from '../engine/trained-policy.json';
-import { ATTACKER, DEFENDER, attachTooltips, diverging, groupedBars, heatmap, hbars, histogram, legend, stack } from './charts';
+import { ATTACKER, DEFENDER, attachTooltips, chartPng, diverging, groupedBars, heatmap, hbars, histogram, legend, stack } from './charts';
 
 interface Batch {
   label: string; attacker: string; defender: string; games: number; attackerWin: number; caught: number; timeout: number;
@@ -74,7 +74,7 @@ export async function analysis(root: HTMLElement, back: () => void) {
   const ex = sim.exploit;
 
   root.innerHTML = `
-    <div class="top-row"><h2>GAME THEORY ANALYSIS</h2><button class="btn" id="back">MENU</button></div>
+    <div class="top-row"><h2>GAME THEORY ANALYSIS</h2><span class="menu-foot" style="margin:0"><button class="btn" id="export">EXPORT FIGURES</button><button class="btn" id="back">MENU</button></span></div>
     <div class="stack">
       <div class="win"><div class="bar"><span>01_what_kind_of_game.txt</span></div><div class="body prose">
         <p>A <b>finite, repeated, simultaneous-move, stochastic game with imperfect information</b>. Each round is a zero-sum
@@ -180,4 +180,37 @@ export async function analysis(root: HTMLElement, back: () => void) {
   sliders.forEach((s) => s.addEventListener('input', drawInsp));
   drawInsp();
   attachTooltips(root);
+  const btn = root.querySelector<HTMLButtonElement>('#export')!;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const n = await exportFigures(root, (done, total) => (btn.textContent = `EXPORTING ${done}/${total}`));
+    btn.textContent = import.meta.env.DEV ? `SAVED ${n} TO report/figures` : `DOWNLOADED ${n}`;
+    btn.disabled = false;
+  });
+}
+
+/** Every chart on the page as fig-<window name>[-a|-b].png, with the current slider and checkbox state. */
+async function exportFigures(root: HTMLElement, progress: (done: number, total: number) => void): Promise<number> {
+  const jobs: { name: string; svg: SVGSVGElement; legend: Element | null }[] = [];
+  root.querySelectorAll('.win').forEach((win) => {
+    const svgs = [...win.querySelectorAll<SVGSVGElement>('svg.chart')];
+    const base = win.querySelector('.bar span')!.textContent!.replace(/\.\w+$/, '');
+    svgs.forEach((svg, i) => {
+      const next = svg.nextElementSibling;
+      jobs.push({ name: `fig-${base}${svgs.length > 1 ? `-${'abcdefgh'[i]}` : ''}.png`, svg, legend: next?.classList.contains('legend') ? next : null });
+    });
+  });
+  for (const [i, job] of jobs.entries()) {
+    progress(i, jobs.length);
+    const png = await chartPng(job.svg, job.legend);
+    if (import.meta.env.DEV) await fetch(`/__figure?name=${job.name}`, { method: 'POST', body: png });
+    else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(png);
+      a.download = job.name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  }
+  return jobs.length;
 }

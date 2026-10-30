@@ -57,3 +57,8 @@ Course project (CSE3145 Game Theory) and an extensible attack/defense game. Owne
   returned no result vs "nothing found") — fixed and pinned by a test. M6: analysis page (live stage LPs with kappa
   toggle, inspection-game sliders, CPU grid, ladder, Nash-vs-Nash, exploitability, learned policy) and the Learned
   tier (regret matching, self-play). 62 tests. Open: art direction (M7), name/copy, his review of the M4 budget change.
+- 2026-10-30: M7 done (A+B mix, all 34 GPT assets, motion). M8: deployed to
+  https://cyber-gt-game.devanshchowdhary03.workers.dev (`npm run deploy`); EXPORT FIGURES on the analysis page writes
+  16 PNGs to `report/figures/` via a dev-only Vite middleware (`vite.config.ts`), captions in `report/FIGURES.md`;
+  `npm run numbers` writes `report/NUMBERS.md` from sim.json. Still open: a classmate's cold playtest (roadmap "done
+  means"), game name/copy, his OK on the M4 budget change.

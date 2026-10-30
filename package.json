@@ -9,7 +9,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "sim": "vite-node tools/sim.ts --",
-    "eval": "vite-node tools/eval-cpus.ts"
+    "eval": "vite-node tools/eval-cpus.ts",
+    "numbers": "vite-node tools/report-numbers.ts",
+    "deploy": "npm run build && npx wrangler@3 deploy"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
