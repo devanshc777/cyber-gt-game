@@ -178,6 +178,8 @@ export function tip(role: Role, st: Settings, state: GameState, history: RoundRe
     if (state.phase === 'outside' && state.knowledge < 2) return 'Port Scan raises Knowledge, which makes SQL Injection and Brute Force more likely to get you in.';
     if (state.phase === 'outside') return 'Try to break in: Phishing, SQL Injection or Brute Force.';
     if (!state.backdoor) return 'You are inside. Persist plants a backdoor, so one Threat Hunt cannot throw you out.';
+    if (r.attack === 'A8' && r.compromiseDelta > 0 && r.compromiseDelta <= 15 && state.knowledge < 3)
+      return 'Small haul. Each point of Knowledge adds +5 to every Exfiltrate: Packet Sniffing raises it from inside.';
     return 'Exfiltrate to raise Compromise. Mix in Lay Low so they cannot time a hunt.';
   }
   if (state.budget <= 2) return 'Budget is almost gone. Idle is free: save the rest for when you see something.';

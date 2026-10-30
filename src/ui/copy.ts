@@ -51,7 +51,7 @@ export const BRIEFING: Record<'attacker' | 'defender', Slide[]> = {
     { icons: ['A6', 'D6'], title: 'Every round, both sides pick in secret', lines: ['You pick an attack. The defender picks a defence.', 'Then both are revealed. A good defence blocks a matching attack.'] },
     { icons: ['net', 'web'], title: 'Step 1: get inside', lines: ['You start OUTSIDE the network.', 'Phishing, SQL Injection and Brute Force can break you in. Each is a chance, not a sure thing.', 'The defender is not told when you get in.'] },
     { icons: ['A1'], title: 'Knowledge makes you stronger', lines: ['Port Scan teaches you about the target. It never gets you in by itself.', 'Each point of Knowledge makes SQL Injection and Brute Force more likely to land.'] },
-    { icons: ['A8', 'db'], title: 'Step 2: steal the data', lines: ['Once INSIDE, Exfiltrate raises Compromise.', 'Compromise 100 = you win.'] },
+    { icons: ['A8', 'db'], title: 'Step 2: steal the data', lines: ['Once INSIDE, Exfiltrate raises Compromise.', 'Each steal is +10 to +30, bigger when their defence is weak. Every point of Knowledge adds +5 more, up to +15.', 'Compromise 100 = you win.'] },
     { icons: ['D1'], title: 'Watch your Risk', lines: ['Every move makes noise and raises Risk. Blocked moves are extra loud.', 'Past the trace line, each round you might get caught.', 'Lay Low skips a turn and cools Risk by 10.'] },
     { icons: ['D7', 'A9'], title: 'The defender can fight back', lines: ['Threat Hunt can find you inside and throw you back out.', 'Persist plants a backdoor, so one hunt cannot remove you.'] },
     { icons: ['end-caught'], title: 'How you lose', lines: ['You get caught (Risk too high).', 'Or 20 rounds pass before Compromise hits 100.'] },

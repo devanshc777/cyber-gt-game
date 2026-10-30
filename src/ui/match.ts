@@ -85,8 +85,12 @@ export function startMatch(root: HTMLElement, setup: MatchSetup, onEnd: (e: Matc
     }
   }
 
+  // Bars are drawn at last round's width, then set to the new one after a forced layout, so the transition runs.
+  // Not on a frame callback: a hidden or throttled tab skips those and the bar fell a round behind its number.
   function slideBars() {
-    requestAnimationFrame(() => root.querySelector('#hud')?.querySelectorAll<HTMLElement>('.bar-fill').forEach((f) => (f.style.width = `${f.dataset.w}%`)));
+    const hud = $('hud');
+    void hud.offsetWidth;
+    hud.querySelectorAll<HTMLElement>('.bar-fill').forEach((f) => (f.style.width = `${f.dataset.w}%`));
   }
 
   function renderActions() {
