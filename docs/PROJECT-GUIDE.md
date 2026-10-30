@@ -1,5 +1,7 @@
 # ATTACKER // DEFENDER: the whole project, explained
 
+Short version plus the deep strategy and game-theory walk-through: [STRATEGY-EXPLAINER.md](STRATEGY-EXPLAINER.md).
+
 A plain-language guide to everything in this project: the cybersecurity ideas the game is built on, the game
 theory behind it, what was built and measured, and where it could go if it became a full game.
 
@@ -177,8 +179,9 @@ steals. Making each side indifferent gives the mixed equilibrium:
 - Attacker exfiltrates with **q\* = h / (g + L)**.
 - Defender hunts with **p\* = g / (g + L)**.
 
-The result that surprises people: **how often the attacker acts depends on the cost of inspecting (h), not on the
-size of the punishment for the attacker.** Cheaper hunts mean less stealing. With the analysis page's defaults
+The result that surprises people: **each side's mix is pinned by the other side's numbers.** The attacker's
+stealing rate is set by the defender's hunt cost h (cheaper hunts mean less stealing). The defender's hunting rate is
+set by the attacker's gain g and loss L. With the analysis page's defaults
 (g 30, L 25, h 6), the attacker exfiltrates 10.9% of the time and the defender hunts 54.5%.
 
 ### 4.5 Information and beliefs
